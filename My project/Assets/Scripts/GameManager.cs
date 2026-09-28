@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,19 +16,37 @@ public class GameManager : MonoBehaviour
 
     public TextMeshProUGUI livesText;
 
+    // Added from old script
+    public GameObject gameOverText;
+    public GameObject restartText;
+
     public int score;
 
     public float horizontalScreenSize = 6f;
 
     public float verticalScreenSize = 5f;
 
+    // Added from old script
+    private bool gameOver;
+
     // Start is called before the first frame update
     void Start()
     {
         score = 0;
+        gameOver = false;
+
         InvokeRepeating("CreateEnemyOne", 1, 2);
         InvokeRepeating("CreateEnemyTwo", 3, 4);
         InvokeRepeating("CreateEnemyThree", 5, 6);
+    }
+
+    // Added from old script
+    void Update()
+    {
+        if (gameOver && Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 
     void CreateEnemyOne()
@@ -56,5 +75,14 @@ public class GameManager : MonoBehaviour
     public void ChangeLivesText(int currentLives)
     {
         livesText.text = "Lives: " + currentLives;
+    }
+
+    // Added from old script
+    public void GameOver()
+    {
+        gameOverText.SetActive(true);
+        restartText.SetActive(true);
+        gameOver = true;
+        CancelInvoke();
     }
 }
