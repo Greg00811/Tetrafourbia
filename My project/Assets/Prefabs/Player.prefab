@@ -91,6 +91,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &6786422525053557231
 MonoBehaviour:
@@ -105,7 +106,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   lives: 0
-  explosionPrefab: {fileID: 0}
+  explosionPrefab: {fileID: 8157688581515073741, guid: 37727e50245b71d45bcf486fc8278a97, type: 3}
   bulletPrefab: {fileID: 2399377715013737310, guid: 05b6a47be8525d144a01d027215a755f, type: 3}
 --- !u!61 &7891535940924792662
 BoxCollider2D:
