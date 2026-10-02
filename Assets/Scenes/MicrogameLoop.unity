@@ -5863,7 +5863,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd3885c9db16e6543812ab5ec217f165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OddOneOut
-  instruction: DO IT!
+  instruction: FIND IT!
   baseTimeLimit: 6
   squares:
   - {fileID: 1564463051}
@@ -5874,8 +5874,14 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 051b549309c7c1642960089d9ba6c9ce, type: 3}
   - {fileID: 21300000, guid: fc6f67d3dcaf1da479c83eefaf63c670, type: 3}
   - {fileID: 21300000, guid: d992f3a4200e4f348aeed37bb60f340f, type: 3}
+  - {fileID: 21300000, guid: ca5b48d339e602546982674c03ed322e, type: 3}
+  - {fileID: 21300000, guid: 5e1f6e73da7ec0540bf3db825a38f6a8, type: 3}
+  - {fileID: 21300000, guid: df756f505dec98b4da47714d4963f011, type: 3}
   oddImages:
   - {fileID: 21300000, guid: d9faa5f782818904aa21632c654c7312, type: 3}
+  - {fileID: 21300000, guid: 160572c9ec0b9f14aa60f90c85c7b799, type: 3}
+  - {fileID: 21300000, guid: 49337fd009adc6f44b04dc50edee686d, type: 3}
+  - {fileID: 21300000, guid: 327988158d9037e4585661db225f58a4, type: 3}
   allowDuplicateCommons: 0
 --- !u!1 &2093195008
 GameObject:
