@@ -274,7 +274,7 @@ public class GalagaBlast : MicrogameBase
             pos.y += bulletSpeed * deltaTime;
             bullet.anchoredPosition = pos;
 
-            float topEdge = playArea != null ? playArea.rect.height / 2f : 400f;
+            float topEdge = playArea != null ? playArea.rect.height / 2f + 1000 : 400f;
             if (pos.y > topEdge)
             {
                 Destroy(bullet.gameObject);
