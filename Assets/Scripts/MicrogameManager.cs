@@ -42,11 +42,19 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private CanvasGroup resultsPanel; // shown at end of session
     [SerializeField] private TMP_Text resultsSummaryText;
 
+    [Header("Narrative (tap-to-advance dialogue)")]
+    [SerializeField] private DialoguePlayer dialoguePlayer;
+    [SerializeField] private NarrativeSequence introSequence;          // plays once, before the first microgame
+    [SerializeField] private NarrativeSequence[] interludeSequences;   // played in order, one per break
+    [SerializeField] private int gamesPerInterlude = 4;                // break after every 4 rounds played
+
     [Header("Scene Flow")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     private int totalGamesThisSession;
     private int gamesClearedCount;
+    private int roundsPlayed;
+    private int interludeIndex;
     private int currentLives;
     private float currentTimeLimitMultiplier = 1f;
     private List<GameObject> shuffledBag = new List<GameObject>();
@@ -77,12 +85,35 @@ public class MicrogameManager : MonoBehaviour
 
     private IEnumerator RunSession()
     {
+        // Story beat before anything else starts.
+        yield return StartCoroutine(PlayNarrative(introSequence));
+
         while (gamesClearedCount < totalGamesThisSession && currentLives > 0)
         {
             yield return StartCoroutine(PlayOneRound());
+            roundsPlayed++;
+
+            // Story beat after every Nth round - but not if the session just ended,
+            // since the results screen takes over from there.
+            bool sessionOver = gamesClearedCount >= totalGamesThisSession || currentLives <= 0;
+            bool interludeDue = gamesPerInterlude > 0 && roundsPlayed % gamesPerInterlude == 0;
+
+            if (!sessionOver && interludeDue
+                && interludeSequences != null && interludeIndex < interludeSequences.Length)
+            {
+                yield return StartCoroutine(PlayNarrative(interludeSequences[interludeIndex]));
+                interludeIndex++;
+            }
         }
 
         EndSession();
+    }
+
+    /// <summary>Plays a dialogue sequence and waits for it to finish. Safely does nothing if unassigned.</summary>
+    private IEnumerator PlayNarrative(NarrativeSequence sequence)
+    {
+        if (dialoguePlayer == null || sequence == null) yield break;
+        yield return StartCoroutine(dialoguePlayer.Play(sequence));
     }
 
     private IEnumerator PlayOneRound()
