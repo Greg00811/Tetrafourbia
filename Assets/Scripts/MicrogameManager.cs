@@ -48,6 +48,9 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private NarrativeSequence[] interludeSequences;   // played in order, one per break
     [SerializeField] private int gamesPerInterlude = 4;                // break after every 4 rounds played
 
+    [Header("Between-Round Lives Break")]
+    [SerializeField] private LivesBreakScreen livesBreakScreen;
+
     [Header("Scene Flow")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
@@ -90,8 +93,22 @@ public class MicrogameManager : MonoBehaviour
 
         while (gamesClearedCount < totalGamesThisSession && currentLives > 0)
         {
+            int livesBefore = currentLives;
+            int clearedBefore = gamesClearedCount;
+
             yield return StartCoroutine(PlayOneRound());
             roundsPlayed++;
+
+            bool wonRound = gamesClearedCount > clearedBefore;
+            bool lostLife = currentLives < livesBefore;
+
+            // Lives check between rounds. Skipped once every game is cleared,
+            // since the results screen takes over from there.
+            bool allCleared = gamesClearedCount >= totalGamesThisSession;
+            if (!allCleared && livesBreakScreen != null && (wonRound || lostLife))
+            {
+                yield return StartCoroutine(livesBreakScreen.Show(currentLives, lostLife, wonRound));
+            }
 
             // Story beat after every Nth round - but not if the session just ended,
             // since the results screen takes over from there.
