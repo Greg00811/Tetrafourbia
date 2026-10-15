@@ -10,17 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9af6d135f117f114abb17efab4b88716, type: 3}
-  m_Name: Intro
+  m_Name: FindThe4
   m_EditorClassIdentifier: Assembly-CSharp::NarrativeSequence
-  defaultSpeakerName: ???
+  defaultSpeakerName: Quade (Therapy AI Assistant)
   defaultNpcSprite: {fileID: 0}
   lines:
-  - speakerName: 
-    text: 
-    npcSprite: {fileID: 0}
-  - speakerName: 
-    text: 
-    npcSprite: {fileID: 0}
-  - speakerName: 
-    text: 
+  - speakerName: Quade (Therapy AI Assistant)
+    text: 'MINIGAME 1 - FIND THE 4
+
+
+      Let this be an aid in visualizing your
+      fear. Before we dig deeper, you should focus on the number that troubles you.'
     npcSprite: {fileID: 0}
