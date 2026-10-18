@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: AfterBoss
   m_EditorClassIdentifier: Assembly-CSharp::NarrativeSequence
   defaultSpeakerName: Quade (Therapy AI Assistant)
-  defaultNpcSprite: {fileID: 0}
+  defaultNpcSprite: {fileID: 21300000, guid: 1987e9d20a4809c46be8e4bc001d791f, type: 3}
   lines:
   - speakerName: Quade (Therapy AI Assistant)
     text: "Aw, can't win em all. \r\nI think we're on the verge of a major breakthrough.
