@@ -10,7 +10,7 @@ using UnityEngine.UI;
 /// The player must repeat the sequence of lights that flash in the same order.
 /// Missing any of these lights results in a failure.
 /// 
-/// IMPORTANT
+/// [IMPORTANT]
 /// BASE TIME LIMIT IS INCREASED TO 8 SECONDS TO ACCOUNT FOR THE FLASHING LIGHTS.
 /// 
 /// More colors can be added in the inspector, but make sure to set the lights' Alpha to 0.5, as to match the other colors present.
