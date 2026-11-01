@@ -28,6 +28,12 @@ public class FlashingLights : MicrogameBase
     private List<Button> playerOrder = new();
     public override void StartMicrogame()
     {
+        // Reset state left over from the previous round (this was causing the freeze).
+        StopAllCoroutines();
+        usedColors.Clear();
+        buttonOrder.Clear();
+        playerOrder.Clear();
+
         ColorPicker();
         ButtonOrder();
         StartCoroutine(ShowPatternRoutine());
@@ -128,6 +134,7 @@ public class FlashingLights : MicrogameBase
     }
     public override void ForceStop()
     {
+        StopAllCoroutines();
         base.ForceStop();
     }
 }

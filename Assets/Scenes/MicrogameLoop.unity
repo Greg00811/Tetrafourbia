@@ -7770,7 +7770,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b51a8f5158b2d3e49887d3560a8b2fa0, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1fb826a90c4746448abf96651e06075d, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8353,12 +8353,6 @@ MonoBehaviour:
   - {fileID: 1983235220}
   - {fileID: 1825379204}
   - {fileID: 335797218}
-  - {fileID: 384207134}
-  - {fileID: 384207134}
-  - {fileID: 384207134}
-  - {fileID: 384207134}
-  - {fileID: 384207134}
-  - {fileID: 384207134}
   - {fileID: 384207134}
   startingLives: 4
   speedRampEveryNGames: 4
@@ -11463,15 +11457,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalagaBlast
   instruction: BLAST THOSE SHIPS!
-  baseTimeLimit: 9
+  baseTimeLimit: 8
   playArea: {fileID: 2057782838}
   parentCanvas: {fileID: 214782662}
   playerShip: {fileID: 1498131191}
-  playerFollowSpeed: 900
+  playerFollowSpeed: 1400
   playerHalfWidth: 30
   bulletPrefab: {fileID: 569577350623127168, guid: 6597b34f6970f9440892211a6a9b9934, type: 3}
   bulletContainer: {fileID: 1027624402}
-  bulletSpeed: 2000
+  bulletSpeed: 3000
   fireCooldown: 0.3
   enemyPrefab: {fileID: 1244749645085490530, guid: 4cc4b129a8252f049af81a5ded4760a9, type: 3}
   enemyContainer: {fileID: 1078503250}
@@ -11479,8 +11473,8 @@ MonoBehaviour:
   columns: 4
   enemySpacingX: 200
   enemySpacingY: 60
-  enemySidewaysSpeed: 60
-  enemyDropAmount: 40
+  enemySidewaysSpeed: 200
+  enemyDropAmount: 30
   enemyHalfSize: 25
   loseRowY: -260
 --- !u!1 &1994334614
@@ -11675,7 +11669,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -143.18}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 500, y: 96.7}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &2010209845
@@ -12181,7 +12175,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -81.2}
+  m_AnchoredPosition: {x: 0, y: -98.9}
   m_SizeDelta: {x: 159.9, y: 45.099976}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &2098489226
