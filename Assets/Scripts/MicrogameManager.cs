@@ -30,7 +30,7 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private int startingLives = 4;
     [SerializeField] private int speedRampEveryNGames = 4; // ramp up every 4 clears
     [SerializeField] private float speedRampMultiplier = 0.9f; // time limit shrinks 10% per ramp
-    [SerializeField] private float minimumTimeLimit = 1.2f;
+    [SerializeField] public float minimumTimeLimit = 1.2f; //public for survival microgames
 
     [Header("UI References")]
     [SerializeField] private TMP_Text instructionText;
@@ -59,7 +59,7 @@ public class MicrogameManager : MonoBehaviour
     private int roundsPlayed;
     private int interludeIndex;
     private int currentLives;
-    private float currentTimeLimitMultiplier = 1f;
+    public float currentTimeLimitMultiplier = 1f; //public for survival microgames
     private List<GameObject> shuffledBag = new List<GameObject>();
     private MicrogameBase activeMicrogame;
     private Coroutine roundRoutine;

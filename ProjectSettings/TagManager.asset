@@ -6,6 +6,9 @@ TagManager:
   tags:
   - DinosaurGameObstacle
   - DinosaurGamePlayer
+  - DinosaurGame Player
+  - BallJuggleBall
+  - BallJugglePaddle
   layers:
   - Default
   - TransparentFX
