@@ -14,11 +14,23 @@ using UnityEngine;
 public abstract class MicrogameBase : MonoBehaviour, IMicrogame
 {
     [Header("Microgame Info")]
-    [SerializeField] private string instruction = "DO IT!";
-    [SerializeField] private float baseTimeLimit = 4f; // 4 seconds - on theme!
+    [SerializeField] protected string instruction = "DO IT!";
+    [SerializeField] protected float baseTimeLimit = 4f; // 4 seconds - on theme!
 
     public string Instruction => instruction;
     public float BaseTimeLimit => baseTimeLimit;
+
+    /// <summary>
+    /// When true, the manager gives this microgame its full Base Time Limit
+    /// instead of shrinking it as the run speeds up. For longer finale-style games.
+    /// </summary>
+    public virtual bool IgnoreDifficultyRamp => false;
+
+    /// <summary>
+    /// When true, running out the clock counts as a WIN instead of a loss.
+    /// For survival games where lasting until the timer ends is the goal.
+    /// </summary>
+    public virtual bool TimeoutCountsAsWin => false;
 
     public event Action<bool> OnMicrogameResult;
 
