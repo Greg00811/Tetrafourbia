@@ -3063,7 +3063,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &558419313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9406,13 +9406,14 @@ GameObject:
   m_Component:
   - component: {fileID: 1514611747}
   - component: {fileID: 1514611746}
+  - component: {fileID: 1514611748}
   m_Layer: 0
   m_Name: MicroGameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1514611746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9425,34 +9426,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3e33c1e0bd6e6b40b787d37ad57e8ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MicrogameManager
-  microgamePrefabsOrObjects:
-  - {fileID: 257777029}
-  - {fileID: 862186107}
-  - {fileID: 2010651989}
-  - {fileID: 1983235220}
-  - {fileID: 1825379204}
-  - {fileID: 335797218}
-  - {fileID: 384207134}
-  startingLives: 4
-  speedRampEveryNGames: 4
-  speedRampMultiplier: 0.9
-  minimumTimeLimit: 1.2
-  instructionText: {fileID: 2098489226}
-  livesText: {fileID: 1542803973}
-  gameCountText: {fileID: 1766362770}
-  timerBarFill: {fileID: 2129943252}
-  readyBanner: {fileID: 1652089227}
-  goBanner: {fileID: 558659280}
-  resultsPanel: {fileID: 1565770890}
-  resultsSummaryText: {fileID: 742523139}
-  dialoguePlayer: {fileID: 389149043}
-  introSequence: {fileID: 11400000, guid: 9215830a6bb27a64ba844d4be6dd244c, type: 2}
-  interludeSequences: []
-  gamesPerInterlude: 4
-  livesBreakScreen: {fileID: 1827713189}
-  finaleMicrogame: {fileID: 984548280}
-  finaleIntroSequence: {fileID: 0}
-  mainMenuSceneName: MainMenu
 --- !u!4 &1514611747
 Transform:
   m_ObjectHideFlags: 0
@@ -9475,6 +9448,46 @@ Transform:
   - {fileID: 384207136}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1514611748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1514611745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dea38436d8ed79f4d98357614647704d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MicrogameManager
+  microgamePrefabsOrObjects:
+  - {fileID: 257777029}
+  - {fileID: 2010651989}
+  - {fileID: 862186107}
+  - {fileID: 1983235220}
+  - {fileID: 1825379204}
+  - {fileID: 335797218}
+  - {fileID: 384207134}
+  startingLives: 4
+  speedRampEveryNGames: 4
+  speedRampMultiplier: 0.9
+  minimumTimeLimit: 1.2
+  instructionText: {fileID: 2098489226}
+  livesText: {fileID: 1542803973}
+  gameCountText: {fileID: 1766362770}
+  timerBarFill: {fileID: 2010209845}
+  readyBanner: {fileID: 1652089227}
+  goBanner: {fileID: 558659280}
+  resultsPanel: {fileID: 1565770890}
+  resultsSummaryText: {fileID: 1303107039}
+  dialoguePlayer: {fileID: 0}
+  introSequence: {fileID: 0}
+  interludeSequences: []
+  gamesPerInterlude: 4
+  livesBreakScreen: {fileID: 1827713189}
+  finaleMicrogame: {fileID: 984548280}
+  finaleIntroSequence: {fileID: 0}
+  mainMenuSceneName: MainMenu
 --- !u!1 &1515347944
 GameObject:
   m_ObjectHideFlags: 0
@@ -11219,7 +11232,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1757105650
 MonoBehaviour:
   m_ObjectHideFlags: 0
