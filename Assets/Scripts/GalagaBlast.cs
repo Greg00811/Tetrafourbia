@@ -68,6 +68,11 @@ public class GalagaBlast : MicrogameBase
     [SerializeField] private float enemyHalfSize = 25f;
     [SerializeField] private float loseRowY = -260f; // anchoredPosition.y that counts as "reached the player"
 
+    [Header("Audio")]                                          // SOUND
+    [SerializeField] private AudioSource audioSource;          // SOUND
+    [SerializeField] private AudioClip laserSFX;               // SOUND
+    [SerializeField] private AudioClip explosionSFX;           // SOUND
+
     private readonly List<RectTransform> activeEnemies = new List<RectTransform>();
     private readonly List<RectTransform> activeBullets = new List<RectTransform>();
     private float enemyDirection = 1f; // 1 = moving right, -1 = moving left
@@ -224,6 +229,8 @@ public class GalagaBlast : MicrogameBase
         rt.anchoredPosition = playerShip.anchoredPosition + new Vector2(0f, 20f);
         bulletObj.SetActive(true);
         activeBullets.Add(rt);
+
+        PlaySound(laserSFX);                                   // SOUND
     }
 
     // ---------- Enemies & Bullets ----------
@@ -318,6 +325,7 @@ public class GalagaBlast : MicrogameBase
                     Destroy(enemy.gameObject);
                     activeBullets.RemoveAt(b);
                     activeEnemies.RemoveAt(e);
+                    PlaySound(explosionSFX);                   // SOUND
                     break;
                 }
             }
@@ -342,5 +350,12 @@ public class GalagaBlast : MicrogameBase
                 return;
             }
         }
+    }
+
+    // SOUND
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+            audioSource.PlayOneShot(clip);
     }
 }

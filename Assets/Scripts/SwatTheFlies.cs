@@ -61,6 +61,11 @@ public class SwatTheFlies : MicrogameBase
     [Tooltip("Size of the death image relative to the fly's size.")]
     [SerializeField] private float deathScale = 1f;
 
+    [Header("Audio")]                                                              // SOUND
+    [SerializeField] private AudioSource audioSource;                              // SOUND
+    [SerializeField] private AudioClip[] deathSounds;                              // SOUND
+    [SerializeField] private Vector2 pitchRange = new Vector2(0.9f, 1.1f);         // SOUND
+
     [Header("Game Rules")]
     [SerializeField] private float timeLimit = 5f;
     [Tooltip("Small pause after the last kill so the death image can be seen before reporting the win.")]
@@ -371,6 +376,7 @@ public class SwatTheFlies : MicrogameBase
         killedCount++;
 
         SpawnDeathImage(i);
+        PlayDeathSound();                                                          // SOUND
         flies[i].gameObject.SetActive(false);
 
         // Win condition: every fly is dead.
@@ -406,6 +412,20 @@ public class SwatTheFlies : MicrogameBase
         splatImage.color = tintDeathSprite ? new Color(hues[i], 0f, 0f, 1f) : Color.white;
 
         splats.Add(splatObject);
+    }
+
+    // SOUND
+    private void PlayDeathSound()
+    {
+        if (audioSource == null || deathSounds == null || deathSounds.Length == 0)
+            return;
+
+        AudioClip clip = deathSounds[Random.Range(0, deathSounds.Length)];
+        if (clip == null)
+            return;
+
+        audioSource.pitch = Random.Range(pitchRange.x, pitchRange.y);
+        audioSource.PlayOneShot(clip);
     }
 
     private IEnumerator WinAfterDelay()
