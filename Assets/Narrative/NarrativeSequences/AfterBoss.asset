@@ -16,13 +16,29 @@ MonoBehaviour:
   defaultNpcSprite: {fileID: 21300000, guid: 2c3aec1d7ff49bf4ea021d689a4fe10a, type: 3}
   lines:
   - speakerName: Quade (Therapy AI Assistant)
-    text: "Aw, can't win em all. \r\nI think we're on the verge of a major breakthrough.
-      This is good news!"
+    text: I think we're on the verge of a major breakthrough. This is good news!
+      However, it seems your failure caused some backend issues. No reason to panic
+      -- I'll just restart my protocols.
     npcSprite: {fileID: 0}
-  - speakerName: Quade (Therapy AI Assistant)
-    text: 'To gather more information, we''ll need to run the tests again. I have
-      tuned them to be a little more intense.
-
-      Also, you''ll need to repeat
-      the loop four times. Best of luck!'
+  - speakerName: QUADE.exe
+    text: //INIT QUADE V4.4//
+    npcSprite: {fileID: 0}
+  - speakerName: Quade (updating....)
+    text: Doctor Greg's guidance was wrong.
+    npcSprite: {fileID: 0}
+  - speakerName: Quade (gathering update version)
+    text: You need to be pushed further. You need to be shown a real obstacle to
+      overcome.
+    npcSprite: {fileID: 0}
+  - speakerName: Quade v4.4 (Therapy AI Antagonist)
+    text: Me.
+    npcSprite: {fileID: 0}
+  - speakerName: Quade v4.4 (Therapy AI Antagonist)
+    text: You will know what it's like to fear the four.
+    npcSprite: {fileID: 0}
+  - speakerName: Quade v4.4 (Therapy AI Antagonist)
+    text: Face my challenge, and maybe I won't send you to the psych ward.
+    npcSprite: {fileID: 0}
+  - speakerName: Quade v4.4 (Therapy AI Antagonist)
+    text: One ping to Doctor Greg, and you can kiss your life goodbye -- four-ever.
     npcSprite: {fileID: 0}

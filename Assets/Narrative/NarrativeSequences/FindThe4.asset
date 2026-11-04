@@ -16,9 +16,10 @@ MonoBehaviour:
   defaultNpcSprite: {fileID: 21300000, guid: 2c3aec1d7ff49bf4ea021d689a4fe10a, type: 3}
   lines:
   - speakerName: Quade (Therapy AI Assistant)
-    text: 'MINIGAME 1 - FIND THE 4
+    text: 'MINIGAME 1 - FIND YOUR FEAR
 
 
-      Let this be an aid in visualizing your
-      fear. Before we dig deeper, you should focus on the number that troubles you.'
+      Let this be an aid in visualizing
+      your fear. Before we dig deeper, you should focus on the number that troubles
+      you. Look closely!'
     npcSprite: {fileID: 0}

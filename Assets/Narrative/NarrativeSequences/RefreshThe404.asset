@@ -16,7 +16,7 @@ MonoBehaviour:
   defaultNpcSprite: {fileID: 21300000, guid: 2c3aec1d7ff49bf4ea021d689a4fe10a, type: 3}
   lines:
   - speakerName: Quade (Therapy AI Assistant)
-    text: "MINIGAME 2 - REFRESH THE 404\r\n\r\nLet's try a real-world example. You're
+    text: "MINIGAME 2 - REFRESH THE PAGE\r\n\r\nLet's try a real-world example. You're
       scrolling the internet, when suddenly you hit an unexpected error. \r\nYou
       will need to find the strength to overcome the obstacle, no matter how small."
     npcSprite: {fileID: 0}
