@@ -2453,7 +2453,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DinosaurGame
   instruction: Jump!
-  baseTimeLimit: 4
+  baseTimeLimit: 8
   spawnTimerMin: 0.5
   spawnTimerMax: 0.75
   obstaclePrefab: {fileID: 6186170766936572173, guid: 47a05b4792126484f915507f3632b260, type: 3}
@@ -6746,6 +6746,7 @@ GameObject:
   - component: {fileID: 759594413}
   - component: {fileID: 759594412}
   - component: {fileID: 759594411}
+  - component: {fileID: 759594414}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -6816,7 +6817,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 759594412}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 759594414}
+        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &759594412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6855,6 +6868,103 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 759594409}
   m_CullTransparentMesh: 1
+--- !u!82 &759594414
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759594409}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 7ef12c83fbf1aae42bda4b5530484033, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &763510265
 GameObject:
   m_ObjectHideFlags: 0
@@ -12222,7 +12332,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1433472427}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1564463054}
+        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1434911927
 GameObject:
   m_ObjectHideFlags: 0
@@ -13552,6 +13674,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3e33c1e0bd6e6b40b787d37ad57e8ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MicrogameManager
+  microgamePrefabsOrObjects: []
+  startingLives: 4
+  speedRampEveryNGames: 4
+  speedRampMultiplier: 0.9
+  minimumTimeLimit: 1.2
+  instructionText: {fileID: 0}
+  livesText: {fileID: 0}
+  gameCountText: {fileID: 0}
+  timerBarFill: {fileID: 0}
+  readyBanner: {fileID: 0}
+  goBanner: {fileID: 0}
+  resultsPanel: {fileID: 0}
+  resultsSummaryText: {fileID: 0}
+  dialoguePlayer: {fileID: 0}
+  introSequence: {fileID: 0}
+  interludeSequences: []
+  gamesPerInterlude: 4
+  livesBreakScreen: {fileID: 0}
+  finaleMicrogame: {fileID: 0}
+  finaleIntroSequence: {fileID: 0}
+  mainMenuSceneName: MainMenu
 --- !u!4 &1514611747
 Transform:
   m_ObjectHideFlags: 0
@@ -13983,7 +14126,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1530344058}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1564463054}
+        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1530344058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14190,6 +14345,7 @@ GameObject:
   - component: {fileID: 1564463053}
   - component: {fileID: 1564463052}
   - component: {fileID: 1564463051}
+  - component: {fileID: 1564463054}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -14259,7 +14415,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1564463052}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1564463054}
+        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1564463052
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14298,6 +14466,103 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1564463049}
   m_CullTransparentMesh: 1
+--- !u!82 &1564463054
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1564463049}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 9cff58e5380bd624eba51ec9bd1d2cf6, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1565770886
 GameObject:
   m_ObjectHideFlags: 0
@@ -16249,7 +16514,13 @@ MonoBehaviour:
   - {r: 1, g: 0.88772, b: 0, a: 0.5019608}
   - {r: 1, g: 0.4764151, b: 0.95005995, a: 0.5019608}
   lightsChain: 4
-  flashTime: 0.3
+  flashTime: 0.15
+  audioSource: {fileID: 1825379207}
+  lightSounds:
+  - {fileID: 8300000, guid: dcaa2dfb123702d4dafa13fbf80ef05c, type: 3}
+  - {fileID: 8300000, guid: c5cf9644dd1843d46897e7f44cc13a5a, type: 3}
+  - {fileID: 8300000, guid: 0aa53bb4bbe7ddb49865537fb8dec7c4, type: 3}
+  - {fileID: 8300000, guid: 629de9861faf6ab40b8db8c3d21111ac, type: 3}
 --- !u!4 &1825379206
 Transform:
   m_ObjectHideFlags: 0
@@ -16373,6 +16644,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1827713188}
   - component: {fileID: 1827713189}
+  - component: {fileID: 1827713190}
   m_Layer: 5
   m_Name: LivesBreakSystem
   m_TagString: Untagged
@@ -16418,11 +16690,111 @@ MonoBehaviour:
   resultText: {fileID: 1303107039}
   winMessage: NICE JOB!
   loseMessage: NO WAY JOSE!
+  audioSource: {fileID: 1827713190}
+  winSound: {fileID: 8300000, guid: 6da86aa85cf289f4ea67b4beaa3969a0, type: 3}
+  loseSound: {fileID: 8300000, guid: c01a940f67d07ce48aabf50e80a65374, type: 3}
   aliveColor: {r: 1, g: 1, b: 1, a: 1}
   lostColor: {r: 1, g: 1, b: 1, a: 0.2}
   introPause: 0.35
   lostLifeAnimTime: 0.5
   holdTime: 0.9
+--- !u!82 &1827713190
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1827713187}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.672
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1830369136
 GameObject:
   m_ObjectHideFlags: 0
@@ -17457,7 +17829,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1944924344}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1564463054}
+        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1944924344
 MonoBehaviour:
   m_ObjectHideFlags: 0

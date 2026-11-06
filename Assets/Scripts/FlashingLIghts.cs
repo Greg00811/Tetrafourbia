@@ -23,6 +23,12 @@ public class FlashingLights : MicrogameBase
     [SerializeField] private int lightsChain; //number of lights that need to be memorized
     [SerializeField] private float flashTime; //time that each light is shown to the player
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    // One sound per light, in the same order as the "Lights" array above.
+    // Used both when the light flashes and when the player clicks it.
+    [SerializeField] private AudioClip[] lightSounds;
+
     private HashSet<Color> usedColors = new();
     private List<Button> buttonOrder = new();
     private List<Button> playerOrder = new();
@@ -75,6 +81,17 @@ public class FlashingLights : MicrogameBase
         }
     }
 
+    private void PlayLightSound(Button light)
+    {
+        if (audioSource == null || lightSounds == null) return;
+
+        int index = System.Array.IndexOf(lights, light);
+        if (index < 0 || index >= lightSounds.Length) return;
+
+        AudioClip clip = lightSounds[index];
+        if (clip != null) audioSource.PlayOneShot(clip);
+    }
+
     private IEnumerator ShowPatternRoutine()
     {
         // Optional short delay before the pattern starts playing
@@ -89,6 +106,8 @@ public class FlashingLights : MicrogameBase
             Color flashColor = originalColor;
             flashColor.a = 1f;
             img.color = flashColor;
+
+            PlayLightSound(patternLight);
 
             Debug.Log(patternLight.name + " shown to player.");
 
@@ -113,6 +132,8 @@ public class FlashingLights : MicrogameBase
 
     private void HandleLightClick(Button clickedLight)
     {
+        PlayLightSound(clickedLight);
+
         playerOrder.Add(clickedLight);
         Debug.Log(clickedLight.name + " clicked by player.");
         // Check if the player's input matches the expected pattern so far
