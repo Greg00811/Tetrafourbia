@@ -30,6 +30,11 @@ public class LivesBreakScreen : MonoBehaviour
     [SerializeField] private string winMessage = "NICE!";
     [SerializeField] private string loseMessage = "OUCH!";
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip winSound;
+    [SerializeField] private AudioClip loseSound;
+
     [Header("Look")]
     [SerializeField] private Color aliveColor = Color.white;
     [SerializeField] private Color lostColor = new Color(1f, 1f, 1f, 0.2f);
@@ -56,6 +61,12 @@ public class LivesBreakScreen : MonoBehaviour
 
         if (resultText != null)
             resultText.text = wonRound ? winMessage : loseMessage;
+
+        if (audioSource != null)
+        {
+            AudioClip clip = wonRound ? winSound : loseSound;
+            if (clip != null) audioSource.PlayOneShot(clip);
+        }
 
         // If a life was just lost, start by showing it as still there,
         // then animate it away. Otherwise just show the current state.
