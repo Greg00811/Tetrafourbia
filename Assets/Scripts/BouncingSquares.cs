@@ -22,6 +22,11 @@ public class BouncingSquares : MicrogameBase
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 250f;
 
+    [Header("Audio")]                                          // SOUND
+    [SerializeField] private AudioSource audioSource;          // SOUND
+    [SerializeField] private AudioClip correctSFX;             // SOUND
+    [SerializeField] private AudioClip wrongSFX;               // SOUND
+
     private Vector2[] velocities;
 
     // The one button that contains the target.
@@ -57,6 +62,8 @@ public class BouncingSquares : MicrogameBase
         int correctIndex = Random.Range(0, squares.Length);
 
         correctSquare = squares[correctIndex];
+
+        SendTargetToBack();
 
         gameActive = true;
 
@@ -116,6 +123,26 @@ public class BouncingSquares : MicrogameBase
                 rect.anchoredPosition = GetRandomPosition(rect);
             }
         }
+    }
+
+    // Moves the target square to the lowest draw position among all the squares,
+    // so it is always drawn behind the other squares.
+    private void SendTargetToBack()
+    {
+        if (correctSquare == null)
+            return;
+
+        int lowestIndex = int.MaxValue;
+
+        foreach (Button square in squares)
+        {
+            if (square == null)
+                continue;
+
+            lowestIndex = Mathf.Min(lowestIndex, square.transform.GetSiblingIndex());
+        }
+
+        correctSquare.transform.SetSiblingIndex(lowestIndex);
     }
 
     private void Update()
@@ -225,12 +252,21 @@ public class BouncingSquares : MicrogameBase
         // ONLY the target square wins.
         if (clickedButton == correctSquare)
         {
+            PlaySound(correctSFX);                             // SOUND
             ReportResult(true);
         }
         else
         {
+            PlaySound(wrongSFX);                               // SOUND
             ReportResult(false);
         }
+    }
+
+    // SOUND
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+            audioSource.PlayOneShot(clip);
     }
 
     private void DisableAllSquares()

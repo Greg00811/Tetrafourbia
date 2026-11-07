@@ -68,6 +68,11 @@ public class GalagaBlast : MicrogameBase
     [SerializeField] private float enemyHalfSize = 25f;
     [SerializeField] private float loseRowY = -260f; // anchoredPosition.y that counts as "reached the player"
 
+    [Header("Audio")]                                          // SOUND
+    [SerializeField] private AudioSource audioSource;          // SOUND
+    [SerializeField] private AudioClip laserSFX;               // SOUND
+    [SerializeField] private AudioClip explosionSFX;           // SOUND
+
     private readonly List<RectTransform> activeEnemies = new List<RectTransform>();
     private readonly List<RectTransform> activeBullets = new List<RectTransform>();
     private float enemyDirection = 1f; // 1 = moving right, -1 = moving left
@@ -100,7 +105,7 @@ public class GalagaBlast : MicrogameBase
         HandleFiring(deltaTime);
         MoveEnemyFormation(deltaTime);
         MoveBullets(deltaTime);
-        CheckCollisions();
+        CheckCollisions(deltaTime);
         CheckLoseCondition();
     }
 
@@ -224,6 +229,8 @@ public class GalagaBlast : MicrogameBase
         rt.anchoredPosition = playerShip.anchoredPosition + new Vector2(0f, 20f);
         bulletObj.SetActive(true);
         activeBullets.Add(rt);
+
+        PlaySound(laserSFX);                                   // SOUND
     }
 
     // ---------- Enemies & Bullets ----------
@@ -283,31 +290,45 @@ public class GalagaBlast : MicrogameBase
         }
     }
 
-    private void CheckCollisions()
+    private void CheckCollisions(float deltaTime)
     {
-        const float hitRadius = 30f;
-
         for (int b = activeBullets.Count - 1; b >= 0; b--)
         {
             RectTransform bullet = activeBullets[b];
             if (bullet == null) continue;
+
+            Vector2 bulletPos = bullet.anchoredPosition;
+            float bulletHalfW = bullet.rect.width * 0.5f;
+            float bulletHalfH = bullet.rect.height * 0.5f;
+
+            // Where the bullet was at the start of this frame, so we cover
+            // everything it passed through, not just where it ended up.
+            float prevY = bulletPos.y - bulletSpeed * deltaTime;
+            float bulletMinY = prevY - bulletHalfH;
+            float bulletMaxY = bulletPos.y + bulletHalfH;
 
             for (int e = activeEnemies.Count - 1; e >= 0; e--)
             {
                 RectTransform enemy = activeEnemies[e];
                 if (enemy == null) continue;
 
-                if (Vector2.Distance(bullet.anchoredPosition, enemy.anchoredPosition) < hitRadius)
+                Vector2 enemyPos = enemy.anchoredPosition;
+                float enemyHalfW = enemy.rect.width * 0.5f;
+                float enemyHalfH = enemy.rect.height * 0.5f;
+
+                bool overlapX = Mathf.Abs(bulletPos.x - enemyPos.x) < bulletHalfW + enemyHalfW;
+                bool overlapY = bulletMaxY > enemyPos.y - enemyHalfH && bulletMinY < enemyPos.y + enemyHalfH;
+
+                if (overlapX && overlapY)
                 {
                     Destroy(bullet.gameObject);
                     Destroy(enemy.gameObject);
                     activeBullets.RemoveAt(b);
                     activeEnemies.RemoveAt(e);
+                    PlaySound(explosionSFX);                   // SOUND
                     break;
                 }
             }
-
-            if (bullet == null) continue; // was destroyed above, move to next bullet
         }
 
         if (activeEnemies.Count == 0 && !roundOver)
@@ -329,5 +350,12 @@ public class GalagaBlast : MicrogameBase
                 return;
             }
         }
+    }
+
+    // SOUND
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+            audioSource.PlayOneShot(clip);
     }
 }

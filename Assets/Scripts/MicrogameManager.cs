@@ -51,6 +51,10 @@ public class MicrogameManager : MonoBehaviour
     [Header("Between-Round Lives Break")]
     [SerializeField] private LivesBreakScreen livesBreakScreen;
 
+    [Header("Finale (played once after every other game is cleared)")]
+    [SerializeField] private GameObject finaleMicrogame;
+    [SerializeField] private NarrativeSequence finaleIntroSequence;
+
     [Header("Scene Flow")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
@@ -58,6 +62,8 @@ public class MicrogameManager : MonoBehaviour
     private int gamesClearedCount;
     private int roundsPlayed;
     private int interludeIndex;
+    private bool lastRoundWon;
+    private bool finaleWon;
     private int currentLives;
     private float currentTimeLimitMultiplier = 1f;
     private List<GameObject> shuffledBag = new List<GameObject>();
@@ -73,6 +79,8 @@ public class MicrogameManager : MonoBehaviour
         {
             if (obj != null) obj.SetActive(false);
         }
+
+        if (finaleMicrogame != null) finaleMicrogame.SetActive(false);
 
         if (resultsPanel != null)
         {
@@ -123,6 +131,24 @@ public class MicrogameManager : MonoBehaviour
             }
         }
 
+        // Finale: only if every normal game was cleared with lives to spare.
+        // Losing it costs a life and replays it until you win or run out of lives.
+        if (finaleMicrogame != null && gamesClearedCount >= totalGamesThisSession && currentLives > 0)
+        {
+            yield return StartCoroutine(PlayNarrative(finaleIntroSequence));
+
+            while (!finaleWon && currentLives > 0)
+            {
+                yield return StartCoroutine(PlayOneRound(finaleMicrogame, false));
+                finaleWon = lastRoundWon;
+
+                if (!finaleWon && currentLives > 0 && livesBreakScreen != null)
+                {
+                    yield return StartCoroutine(livesBreakScreen.Show(currentLives, true, false));
+                }
+            }
+        }
+
         EndSession();
     }
 
@@ -133,15 +159,15 @@ public class MicrogameManager : MonoBehaviour
         yield return StartCoroutine(dialoguePlayer.Play(sequence));
     }
 
-    private IEnumerator PlayOneRound()
+    private IEnumerator PlayOneRound(GameObject forcedMicrogame = null, bool countsTowardTotal = true)
     {
-        // Ramp difficulty every N clears.
-        if (gamesClearedCount > 0 && gamesClearedCount % speedRampEveryNGames == 0)
+        // Ramp difficulty every N clears (not for the finale, which is picked by hand).
+        if (forcedMicrogame == null && gamesClearedCount > 0 && gamesClearedCount % speedRampEveryNGames == 0)
         {
             currentTimeLimitMultiplier *= speedRampMultiplier;
         }
 
-        GameObject chosenObject = PickNextMicrogame();
+        GameObject chosenObject = forcedMicrogame != null ? forcedMicrogame : PickNextMicrogame();
         activeMicrogame = chosenObject.GetComponent<MicrogameBase>();
 
         if (activeMicrogame == null)
@@ -165,7 +191,9 @@ public class MicrogameManager : MonoBehaviour
         chosenObject.SetActive(true);
         activeMicrogame.StartMicrogame();
 
-        float timeLimit = Mathf.Max(minimumTimeLimit, activeMicrogame.BaseTimeLimit * currentTimeLimitMultiplier);
+        float timeLimit = activeMicrogame.IgnoreDifficultyRamp
+            ? activeMicrogame.BaseTimeLimit
+            : Mathf.Max(minimumTimeLimit, activeMicrogame.BaseTimeLimit * currentTimeLimitMultiplier);
         float timeRemaining = timeLimit;
         bool resultReceived = false;
         bool won = false;
@@ -193,16 +221,19 @@ public class MicrogameManager : MonoBehaviour
 
         if (!resultReceived)
         {
-            // Ran out of time without a reported result = automatic loss.
+            // Ran out of time without a reported result. For most microgames that is
+            // a loss, but survival games (like the finale) count it as a win.
             activeMicrogame.ForceStop();
-            won = false;
+            won = activeMicrogame.TimeoutCountsAsWin;
         }
 
         chosenObject.SetActive(false);
 
+        lastRoundWon = won;
+
         if (won)
         {
-            gamesClearedCount++;
+            if (countsTowardTotal) gamesClearedCount++;
         }
         else
         {
@@ -248,7 +279,8 @@ public class MicrogameManager : MonoBehaviour
 
     private void EndSession()
     {
-        bool clearedAll = gamesClearedCount >= totalGamesThisSession;
+        bool clearedAll = gamesClearedCount >= totalGamesThisSession
+            && (finaleMicrogame == null || finaleWon);
 
         if (resultsPanel != null)
         {
