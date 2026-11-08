@@ -46,6 +46,8 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private GameObject goBanner;      // shows "GO!" when round starts
     [SerializeField] private CanvasGroup resultsPanel; // shown at end of session
     [SerializeField] private TMP_Text resultsSummaryText;
+    [SerializeField] private GameObject[] winObjects;   // shown only when the player wins
+    [SerializeField] private GameObject[] loseObjects;  // shown only when the player loses
 
     [Header("Narrative (tap-to-advance dialogue)")]
     [SerializeField] private DialoguePlayer dialoguePlayer;
@@ -57,6 +59,8 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private LivesBreakScreen livesBreakScreen;
 
     [Header("Finale (played once after every other game is cleared)")]
+    [Tooltip("Untick to skip the final boss minigame completely.")]
+    [SerializeField] private bool finaleEnabled = true;
     [SerializeField] private GameObject finaleMicrogame;
     [SerializeField] private NarrativeSequence finaleIntroSequence;
 
@@ -76,6 +80,9 @@ public class MicrogameManager : MonoBehaviour
     private List<GameObject> shuffledBag = new List<GameObject>();
     private MicrogameBase activeMicrogame;
     private Coroutine roundRoutine;
+
+    /// <summary>True only if the finale checkbox is ticked AND a finale object is assigned.</summary>
+    private bool FinaleActive => finaleEnabled && finaleMicrogame != null;
 
     /// <summary>Your custom font has no zero, so every 0 is shown as a capital O.</summary>
     private static string NoZeros(string s) => s.Replace('0', 'O');
@@ -100,7 +107,7 @@ public class MicrogameManager : MonoBehaviour
         {
             if (level < microgamePrefabsOrObjects.Length)
                 practiceMicrogame = microgamePrefabsOrObjects[level];
-            else if (level == microgamePrefabsOrObjects.Length && finaleMicrogame != null)
+            else if (level == microgamePrefabsOrObjects.Length && FinaleActive)
                 practiceMicrogame = finaleMicrogame;
         }
 
@@ -122,6 +129,10 @@ public class MicrogameManager : MonoBehaviour
             resultsPanel.alpha = 0f;
             resultsPanel.gameObject.SetActive(false);
         }
+
+        // Hide the win/lose visuals until the session ends
+        SetObjectsActive(winObjects, false);
+        SetObjectsActive(loseObjects, false);
 
         UpdateLivesUI();
         UpdateGameCountUI();
@@ -166,9 +177,9 @@ public class MicrogameManager : MonoBehaviour
             }
         }
 
-        // Finale: only if every normal game was cleared with lives to spare.
+        // Finale: only if it is enabled and every normal game was cleared with lives to spare.
         // Losing it costs a life and replays it until you win or run out of lives.
-        if (practiceMicrogame == null && finaleMicrogame != null && gamesClearedCount >= totalGamesThisSession && currentLives > 0)
+        if (practiceMicrogame == null && FinaleActive && gamesClearedCount >= totalGamesThisSession && currentLives > 0)
         {
             yield return StartCoroutine(PlayNarrative(finaleIntroSequence));
 
@@ -333,8 +344,12 @@ public class MicrogameManager : MonoBehaviour
 
     private void EndSession()
     {
+        // The finale only has to be beaten if it is enabled.
         bool clearedAll = gamesClearedCount >= totalGamesThisSession
-            && (practiceMicrogame != null || finaleMicrogame == null || finaleWon);
+            && (practiceMicrogame != null || !FinaleActive || finaleWon);
+
+        // Win = cleared everything with lives left
+        bool playerWon = clearedAll && currentLives > 0;
 
         if (resultsPanel != null)
         {
@@ -342,11 +357,33 @@ public class MicrogameManager : MonoBehaviour
             resultsPanel.alpha = 1f;
         }
 
+        SetObjectsActive(winObjects, playerWon);
+        SetObjectsActive(loseObjects, !playerWon);
+
         if (resultsSummaryText != null)
         {
             resultsSummaryText.text = NoZeros(clearedAll
                 ? $"CLEARED ALL {totalGamesThisSession}!"
                 : $"GAME OVER\n{gamesClearedCount} / {totalGamesThisSession} cleared");
+        }
+    }
+
+    private void SetObjectsActive(GameObject[] objects, bool active)
+    {
+        if (objects == null) return;
+
+        foreach (var obj in objects)
+        {
+            if (obj == null) continue;
+
+            obj.SetActive(active);
+
+            // When showing, also switch on every child (including ones that were disabled)
+            if (active)
+            {
+                foreach (Transform child in obj.GetComponentsInChildren<Transform>(true))
+                    child.gameObject.SetActive(true);
+            }
         }
     }
 
