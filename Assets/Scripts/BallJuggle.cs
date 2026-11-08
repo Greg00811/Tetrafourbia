@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BallJuggle : MicrogameBase
@@ -6,20 +7,21 @@ public class BallJuggle : MicrogameBase
     [SerializeField] private GameObject ballPrefab;
     [SerializeField] private int ballNumber;
     [SerializeField] private Transform ballParent;
-    [SerializeField] private float ballSpawnHeight;//width at which the ball will spawn
-    [SerializeField] private float ballSpawnWidth;//height at which the ball will spawn
+    [SerializeField] private float ballSpawnHeight;
+    [SerializeField] private float ballSpawnWidth;
+    [SerializeField] private float spawnTime;
 
     [SerializeField] private GameObject paddle;
     [SerializeField] private Transform paddleParent;
 
     [Header("Play Area & Player")]
-    [SerializeField] private RectTransform playArea;   // defines movement bounds AND receives touch input
-    [SerializeField] private Canvas parentCanvas;       // needed to convert screen touch position correctly
+    [SerializeField] private RectTransform playArea;       // defines movement bounds AND receives touch input
+    [SerializeField] private Canvas parentCanvas;           // needed to convert screen touch position correctly
     [SerializeField] private RectTransform playerShip;
     [SerializeField] private float playerFollowSpeed = 900f; // how quickly the ship catches up to your finger
     [SerializeField] private float playerHalfWidth = 30f;
-    private GameObject paddleInstance;
 
+    private GameObject paddleInstance;
     private float timeRemaining;
     private readonly float timeCheck = 0.1f;
     private MicrogameManager microgameManager;
@@ -28,22 +30,29 @@ public class BallJuggle : MicrogameBase
     {
         DestroyObstacles("BallJuggleBall");
         DestroyObstacles("BallJugglePaddle");
+
         paddleInstance = Instantiate(paddle);
         microgameManager = GameObject.Find("MicroGameManager").GetComponent<MicrogameManager>();
-        paddleInstance.transform.SetParent(paddleParent, false);
-        BallSpawn(ballNumber);
+
+        if (paddleInstance != null)
+        {
+            paddleInstance.transform.SetParent(paddleParent, false);
+            playerShip = paddleInstance.GetComponent<RectTransform>();
+        }
+
+        StartCoroutine(BallSpawn(ballNumber));
         StartCoroutine(Timer());
         base.StartMicrogame();
     }
 
     private void Update()
     {
-        if (paddleInstance != null)
+        if (playerShip != null)
         {
-            playerShip = paddleInstance.GetComponent<RectTransform>();
             HandlePlayerMovement(Time.deltaTime);
         }
     }
+
     private IEnumerator Timer()
     {
         float timeLimit = Mathf.Max(microgameManager.minimumTimeLimit, BaseTimeLimit * microgameManager.currentTimeLimitMultiplier);
@@ -58,14 +67,23 @@ public class BallJuggle : MicrogameBase
             GameResult(true);
         }
     }
-    private void BallSpawn(int number)
+
+    private IEnumerator BallSpawn(int number)
     {
         for (int i = 0; i < number; i++)
         {
             GameObject ball = Instantiate(ballPrefab);
             ball.transform.SetParent(ballParent, false);
             ball.transform.localPosition = new Vector3(Random.Range(-ballSpawnWidth, ballSpawnWidth), Random.Range(-ballSpawnHeight, ballSpawnHeight), 0);
+            Debug.Log("Ball spawned");
+            //WaitForSeconds(spawnTime);
         }
+        yield return null;
+    }
+
+    private void WaitForSeconds(float spawnTime)
+    {
+        throw new System.NotImplementedException();
     }
 
     private void DestroyObstacles(string tag)
@@ -76,8 +94,11 @@ public class BallJuggle : MicrogameBase
         {
             Destroy(obstacles[i]);
         }
-        Debug.Log(tag + "Obstacles destroyed");
+        Debug.Log(tag + " Obstacles destroyed");
     }
+
+    // ---------- Player (touch/mouse drag-to-move matching GalagaBlast) ----------
+
     private bool IsPointerDown(out Vector2 screenPosition)
     {
         // Touch takes priority so this behaves correctly on an actual device.
@@ -98,6 +119,7 @@ public class BallJuggle : MicrogameBase
         screenPosition = default;
         return false;
     }
+
     private void HandlePlayerMovement(float deltaTime)
     {
         if (playerShip == null || playArea == null) return;
@@ -119,11 +141,12 @@ public class BallJuggle : MicrogameBase
         float halfWidth = playArea.rect.width / 2f - playerHalfWidth;
         targetX = Mathf.Clamp(targetX, -halfWidth, halfWidth);
 
-        // Smoothly follow the touch instead of snapping, so the ship still
-        // feels controllable rather than teleporting to your finger.
+        // Smoothly follow the touch instead of snapping, so the paddle still
+        // feels controllable rather than teleporting directly to your finger.
         pos.x = Mathf.MoveTowards(pos.x, targetX, playerFollowSpeed * deltaTime);
         playerShip.anchoredPosition = pos;
     }
+
     private void GameResult(bool won)
     {
         Debug.Log("Running Result Check");
@@ -132,10 +155,10 @@ public class BallJuggle : MicrogameBase
         Debug.Log("Balls required: " + ballNumber);
         if (balls.Length == ballNumber)
         {
-
             ReportResult(won);
         }
     }
+
     public void FailState()
     {
         Debug.Log("player lost");
