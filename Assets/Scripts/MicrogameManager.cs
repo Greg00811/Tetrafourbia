@@ -18,7 +18,7 @@ using TMPro;
 ///   1. Put each microgame on its own child GameObject under a common parent,
 ///      each with a script inheriting MicrogameBase. Disable them all by default.
 ///   2. Drag those GameObjects into "Available Microgames" below.
-///   3. Wire up the UI references (instruction text, timer bar, lives text).
+///   3. Wire up the UI references (instruction text, timer slider, lives text).
 ///   4. Put this script on an empty "MicrogameManager" GameObject in your
 ///      gameplay scene (the one FourMainMenu's Start button loads).
 /// </summary>
@@ -41,7 +41,7 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private TMP_Text instructionText;
     [SerializeField] private TMP_Text livesText;
     [SerializeField] private TMP_Text gameCountText;
-    [SerializeField] private Image timerBarFill; // Image with Fill Type = Filled
+    [SerializeField] private Slider timerSlider; // drag the "Timer" object (the one with the Slider component) here
     [SerializeField] private GameObject readyBanner;  // shows "READY?" between rounds
     [SerializeField] private GameObject goBanner;      // shows "GO!" when round starts
     [SerializeField] private CanvasGroup resultsPanel; // shown at end of session
@@ -77,8 +77,21 @@ public class MicrogameManager : MonoBehaviour
     private MicrogameBase activeMicrogame;
     private Coroutine roundRoutine;
 
+    /// <summary>Your custom font has no zero, so every 0 is shown as a capital O.</summary>
+    private static string NoZeros(string s) => s.Replace('0', 'O');
+
     private void Start()
     {
+        // Set up the timer slider so it behaves as a 0-1 display bar
+        if (timerSlider != null)
+        {
+            timerSlider.minValue = 0f;
+            timerSlider.maxValue = 1f;
+            timerSlider.wholeNumbers = false;
+            timerSlider.interactable = false; // so the player can't drag it
+            timerSlider.value = 1f;
+        }
+
         // -1 = normal run. 0, 1, 2... = replay that one microgame (the finale is the entry after the list).
         int level = PlayerPrefs.GetInt(LevelSelectMenu.PrefKey, -1);
         practiceMicrogame = null;
@@ -217,13 +230,12 @@ public class MicrogameManager : MonoBehaviour
         yield return new WaitForSeconds(0.4f);
         if (goBanner != null) goBanner.SetActive(false);
 
-        // Run the actual microgame with a shrinking timer.
-        chosenObject.SetActive(true);
-        activeMicrogame.StartMicrogame();
-
+        // Work out the time limit and listen for the result BEFORE starting the
+        // microgame, so a result reported instantly inside StartMicrogame isn't missed.
         float timeLimit = activeMicrogame.IgnoreDifficultyRamp
             ? activeMicrogame.BaseTimeLimit
             : Mathf.Max(minimumTimeLimit, activeMicrogame.BaseTimeLimit * currentTimeLimitMultiplier);
+        timeLimit = Mathf.Max(0.01f, timeLimit); // avoids dividing by zero
         float timeRemaining = timeLimit;
         bool resultReceived = false;
         bool won = false;
@@ -236,13 +248,20 @@ public class MicrogameManager : MonoBehaviour
 
         activeMicrogame.OnMicrogameResult += HandleResult;
 
+        // Reset the bar to full at the start of each round
+        if (timerSlider != null) timerSlider.value = 1f;
+
+        // Run the actual microgame with a shrinking timer.
+        chosenObject.SetActive(true);
+        activeMicrogame.StartMicrogame();
+
         while (timeRemaining > 0f && !resultReceived)
         {
             timeRemaining -= Time.deltaTime;
             activeMicrogame.TickMicrogame(Time.deltaTime);
 
-            if (timerBarFill != null)
-                timerBarFill.fillAmount = Mathf.Clamp01(timeRemaining / timeLimit);
+            if (timerSlider != null)
+                timerSlider.value = Mathf.Clamp01(timeRemaining / timeLimit);
 
             yield return null;
         }
@@ -303,13 +322,13 @@ public class MicrogameManager : MonoBehaviour
     private void UpdateLivesUI()
     {
         if (livesText != null)
-            livesText.text = $"LIVES: {currentLives}";
+            livesText.text = NoZeros($"LIVES: {currentLives}");
     }
 
     private void UpdateGameCountUI()
     {
         if (gameCountText != null)
-            gameCountText.text = $"{gamesClearedCount} / {totalGamesThisSession}";
+            gameCountText.text = NoZeros($"{gamesClearedCount} / {totalGamesThisSession}");
     }
 
     private void EndSession()
@@ -325,9 +344,9 @@ public class MicrogameManager : MonoBehaviour
 
         if (resultsSummaryText != null)
         {
-            resultsSummaryText.text = clearedAll
+            resultsSummaryText.text = NoZeros(clearedAll
                 ? $"CLEARED ALL {totalGamesThisSession}!"
-                : $"GAME OVER\n{gamesClearedCount} / {totalGamesThisSession} cleared";
+                : $"GAME OVER\n{gamesClearedCount} / {totalGamesThisSession} cleared");
         }
     }
 

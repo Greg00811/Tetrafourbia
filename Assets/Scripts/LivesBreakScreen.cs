@@ -3,28 +3,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// The short "how many lives do I have left?" screen shown between microgames,
-/// WarioWare-style. It auto-advances (no tapping needed) so the pace stays fast.
-///
-/// Shows one icon per life. If the player just lost a life, the screen first
-/// shows the icon as still full, then pops it and fades it out so the loss is
-/// easy to notice.
-///
-/// IMPORTANT: put THIS script on an object that stays active (e.g. an empty
-/// "LivesBreakSystem" object). The visible panel is a separate child object
-/// assigned to "Root" - the script hides/shows that, so it must not live on it.
-///
-/// Called from MicrogameManager like:
-///     yield return StartCoroutine(livesBreakScreen.Show(lives, lostLife, wonRound));
-/// </summary>
 public class LivesBreakScreen : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private GameObject root;            // the full-screen panel that gets shown/hidden
-    [SerializeField] private Image[] lifeIcons;          // one Image per starting life (4), left to right
-    [SerializeField] private TMP_Text livesCountText;    // e.g. "3 LIVES LEFT"
-    [SerializeField] private TMP_Text resultText;        // e.g. "NICE!" / "OUCH!"
+    [SerializeField] private GameObject root;
+    [SerializeField] private Image[] guys;          // the 4 Images already on screen, left to right
+    [SerializeField] private Sprite[] deadSprites;  // 4 dead sprites, same order as guys
+    [SerializeField] private TMP_Text livesCountText;
+    [SerializeField] private TMP_Text resultText;
 
     [Header("Text")]
     [SerializeField] private string winMessage = "NICE!";
@@ -35,24 +21,25 @@ public class LivesBreakScreen : MonoBehaviour
     [SerializeField] private AudioClip winSound;
     [SerializeField] private AudioClip loseSound;
 
-    [Header("Look")]
-    [SerializeField] private Color aliveColor = Color.white;
-    [SerializeField] private Color lostColor = new Color(1f, 1f, 1f, 0.2f);
+    [Header("Lose Frames")]
+    [SerializeField] private Sprite[] loseFrames;           // the frames that play
+    [SerializeField] private float loseAnimFps = 12f;
+    [SerializeField] private float loseAnimDelay = 0.5f;    // delay before the frames start
+    [SerializeField] private float loseAnimScale = 1f;      // raise this to make the lose frames bigger
+    [SerializeField] private Vector2 loseAnimOffset = Vector2.zero; // nudge position relative to the guy
+    [SerializeField] private int swapToDeadOnFrame = 8;     // 1-based: guy becomes dead on this frame
 
     [Header("Timing (seconds)")]
-    [SerializeField] private float introPause = 0.35f;     // how long the starting state is shown
-    [SerializeField] private float lostLifeAnimTime = 0.5f; // length of the pop-and-fade
-    [SerializeField] private float holdTime = 0.9f;         // pause at the end before the next round
+    [SerializeField] private float introPause = 0.35f;
+    [SerializeField] private float holdTime = 0.9f;
+
+    private Image fxImage;   // created automatically the first time it's needed
 
     private void Awake()
     {
         if (root != null) root.SetActive(false);
     }
 
-    /// <summary>
-    /// Shows the screen, plays the lost-life animation if needed, then hides it.
-    /// livesRemaining is the count AFTER the round that just finished.
-    /// </summary>
     public IEnumerator Show(int livesRemaining, bool lostLife, bool wonRound)
     {
         if (root == null) yield break;
@@ -68,24 +55,27 @@ public class LivesBreakScreen : MonoBehaviour
             if (clip != null) audioSource.PlayOneShot(clip);
         }
 
-        // If a life was just lost, start by showing it as still there,
-        // then animate it away. Otherwise just show the current state.
-        int lostIconIndex = livesRemaining; // the icon that is about to disappear
+        int lostIndex = livesRemaining;
         int startAliveCount = lostLife ? livesRemaining + 1 : livesRemaining;
 
-        for (int i = 0; i < lifeIcons.Length; i++)
+        // Alive guys keep dancing. Already-dead guys stay on their dead sprite.
+        for (int i = 0; i < guys.Length; i++)
         {
-            if (lifeIcons[i] == null) continue;
-            lifeIcons[i].color = i < startAliveCount ? aliveColor : lostColor;
-            lifeIcons[i].rectTransform.localScale = Vector3.one;
+            if (guys[i] == null) continue;
+
+            if (i < startAliveCount)
+                SetAnimatorEnabled(i, true);
+            else
+                SetDead(i);
         }
 
         SetCountText(startAliveCount);
         yield return new WaitForSeconds(introPause);
 
-        if (lostLife && lostIconIndex >= 0 && lostIconIndex < lifeIcons.Length && lifeIcons[lostIconIndex] != null)
+        if (lostLife && lostIndex >= 0 && lostIndex < guys.Length && guys[lostIndex] != null)
         {
-            yield return StartCoroutine(AnimateLostLife(lifeIcons[lostIconIndex]));
+            yield return new WaitForSeconds(loseAnimDelay);
+            yield return StartCoroutine(PlayLoseFrames(lostIndex));
         }
 
         SetCountText(livesRemaining);
@@ -94,28 +84,78 @@ public class LivesBreakScreen : MonoBehaviour
         root.SetActive(false);
     }
 
-    private IEnumerator AnimateLostLife(Image icon)
+    private IEnumerator PlayLoseFrames(int guyIndex)
     {
-        RectTransform rt = icon.rectTransform;
-        float t = 0f;
-
-        while (t < lostLifeAnimTime)
+        if (loseFrames == null || loseFrames.Length == 0)
         {
-            t += Time.deltaTime;
-            float p = Mathf.Clamp01(t / lostLifeAnimTime);
-
-            // Quick pop up, then shrink back down while fading to the "lost" color.
-            float scale = p < 0.3f
-                ? Mathf.Lerp(1f, 1.5f, p / 0.3f)
-                : Mathf.Lerp(1.5f, 1f, (p - 0.3f) / 0.7f);
-
-            rt.localScale = Vector3.one * scale;
-            icon.color = Color.Lerp(aliveColor, lostColor, p);
-            yield return null;
+            SetDead(guyIndex);
+            yield break;
         }
 
-        rt.localScale = Vector3.one;
-        icon.color = lostColor;
+        Image fx = GetFxImage(guyIndex);
+        fx.gameObject.SetActive(true);
+
+        int swapIndex = Mathf.Clamp(swapToDeadOnFrame - 1, 0, loseFrames.Length - 1);
+        float frameTime = 1f / Mathf.Max(1f, loseAnimFps);
+
+        for (int f = 0; f < loseFrames.Length; f++)
+        {
+            fx.sprite = loseFrames[f];
+            fx.SetNativeSize();   // size matches the frame, then scale is applied on top
+
+            // The guy keeps his current sprite until this frame
+            if (f == swapIndex)
+                SetDead(guyIndex);
+
+            yield return new WaitForSeconds(frameTime);
+        }
+
+        fx.gameObject.SetActive(false);
+    }
+
+    private Image GetFxImage(int guyIndex)
+    {
+        RectTransform guyRect = guys[guyIndex].rectTransform;
+
+        if (fxImage == null)
+        {
+            GameObject go = new GameObject("LoseFramesFX", typeof(RectTransform), typeof(Image));
+            fxImage = go.GetComponent<Image>();
+            fxImage.raycastTarget = false;
+            fxImage.preserveAspect = true;
+        }
+
+        RectTransform fx = fxImage.rectTransform;
+        fx.SetParent(guyRect.parent, false);
+        fx.anchorMin = fx.anchorMax = new Vector2(0.5f, 0.5f);
+        fx.pivot = new Vector2(0.5f, 0.5f);
+        fx.SetAsLastSibling();                 // draw on top of the guys
+        fx.position = guyRect.position;        // center on the guy
+        fx.anchoredPosition += loseAnimOffset;
+        fx.localScale = Vector3.one * loseAnimScale;
+
+        return fxImage;
+    }
+
+    /// <summary>Call this when a new run starts so everyone dances again.</summary>
+    public void ResetGuys()
+    {
+        for (int i = 0; i < guys.Length; i++)
+            SetAnimatorEnabled(i, true);
+    }
+
+    private void SetDead(int i)
+    {
+        SetAnimatorEnabled(i, false);
+        if (deadSprites != null && i < deadSprites.Length && deadSprites[i] != null)
+            guys[i].sprite = deadSprites[i];
+    }
+
+    private void SetAnimatorEnabled(int i, bool enabled)
+    {
+        if (guys[i] == null) return;
+        Animator anim = guys[i].GetComponent<Animator>();
+        if (anim != null) anim.enabled = enabled;
     }
 
     private void SetCountText(int lives)
