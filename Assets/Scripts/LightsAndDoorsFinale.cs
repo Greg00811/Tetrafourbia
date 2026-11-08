@@ -1,47 +1,53 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Finale microgame: a Five Nights at Freddy's-style night shift with ONLY
-/// lights and doors, played in YOUR 3D office, built for touch.
+/// Finale microgame: a night shift with ONLY lights and doors, in plain 2D.
+/// You only assign sprites. The script creates and positions all the pictures itself.
 ///
-/// The rules:
-///   - Something creeps down the LEFT hallway and something down the RIGHT one,
-///     one step at a time (far -> near -> at your door).
 ///   - HOLD a light button to light up that hallway and see what is there.
-///   - TAP a door button to close/open that door. A creature that reaches your
-///     door while it is CLOSED gets blocked and wanders off. If it reaches an
-///     OPEN door, it gets you and you lose.
-///   - DRAG on the view to look left and right around the office.
-///   - Lights and closed doors drain POWER. At 0% the doors pop open and the
-///     lights die, so ration it.
-///   - Survive until the clock hits 4 AM (the end of this microgame's timer) to win.
+///   - TAP a door button to close/open that door.
+///   - A creature at a CLOSED door is blocked. At an OPEN door, it gets you.
+///   - Lights and closed doors drain POWER. At 0% the doors open and lights die.
+///   - Survive until the timer ends (4 AM) to win.
 ///
-/// How it is shown: your 3D office is filmed by a camera that renders into a
-/// RenderTexture, displayed on a RawImage inside your UI. The creatures are 2D
-/// sprites standing in the 3D hallways, always turned to face the camera.
-///
-/// Your office needs an OfficeRig component on its root (see OfficeRig.cs) that
-/// points at its doors, lights, creature spots and eye position.
-///
-/// Setup (UI):
-///   1. Create a child object under MicroGameManager (like your other microgames)
-///      with its own Canvas, and put this script on its root.
-///   2. In that Canvas add, back to front: a full-screen RawImage (with a
-///      DragLookArea on it), 2 Buttons (doors), 2 objects with an Image +
-///      HoldButton (lights), a filled Image (power bar), and TMP texts for
-///      power, clock and status.
-///   3. Drag them into the fields below, disable the root object, and put it in
-///      MicroGameManager's "Finale Microgame" slot (NOT the normal list).
+/// Positions are in "screen fractions": (0,0) is the bottom-left of the screen,
+/// (1,1) is the top-right, (0.5,0.5) is the middle. Heights are a fraction of
+/// the screen height (0.5 = half the screen tall).
 /// </summary>
 public class LightsAndDoorsFinale : MicrogameBase
 {
+    /// <summary>The pictures and placement for one side of the office.</summary>
+    [System.Serializable]
+    public class SideArt
+    {
+        [Header("Light")]
+        [Tooltip("Full-screen picture shown while this side's light button is held (a glow, or the office with the light on).")]
+        public Sprite lightSprite;
+
+        [Header("Door")]
+        [Tooltip("Picture of the closed door.")]
+        public Sprite doorSprite;
+        public Vector2 doorPosition = new Vector2(0.2f, 0.45f);
+        [Range(0.05f, 1.5f)] public float doorHeight = 0.6f;
+
+        [Header("Creature")]
+        [Tooltip("Leave empty to use a plain coloured block.")]
+        public Sprite enemySprite;
+        public Color placeholderColor = Color.red;
+        [Tooltip("Where it stands when it is far away (stage 1).")]
+        public Vector2 enemyFarPosition = new Vector2(0.12f, 0.5f);
+        [Tooltip("Where it stands when it is at your door (stage 3). Stage 2 is halfway between.")]
+        public Vector2 enemyDoorPosition = new Vector2(0.25f, 0.45f);
+        [Range(0.05f, 1.5f)] public float enemyFarHeight = 0.2f;
+        [Range(0.05f, 1.5f)] public float enemyDoorHeight = 0.5f;
+        [Tooltip("Flip the picture sideways (handy to reuse one creature picture on both sides).")]
+        public bool flipHorizontally = false;
+    }
+
     [Header("UI (inside this microgame's own Canvas)")]
-    [SerializeField] private RawImage officeView;
-    [SerializeField] private DragLookArea lookArea;      // on the same object as Office View
     [SerializeField] private Button leftDoorButton;
     [SerializeField] private HoldButton leftLightButton;
     [SerializeField] private Button rightDoorButton;
@@ -51,33 +57,39 @@ public class LightsAndDoorsFinale : MicrogameBase
     [SerializeField] private TMP_Text clockText;
     [SerializeField] private TMP_Text statusText;        // optional: "BLOCKED!", "POWER OUT!"
 
-    [Header("Your 3D office")]
-    [Tooltip("Your office with an OfficeRig on its root. Either an object in the scene (disabled, placed far from the main camera) or a prefab from the Project window.")]
-    [SerializeField] private GameObject officeObject;
-    [Tooltip("Only used when the office is a prefab: where its copy is placed. Keep it far from the main camera.")]
-    [SerializeField] private Vector3 worldOrigin = new Vector3(5000f, 0f, 0f);
+    [Header("Office pictures (just drag sprites in)")]
+    [Tooltip("The office picture. Drawn full screen behind everything.")]
+    [SerializeField] private Sprite officeSprite;
+    [SerializeField]
+    private SideArt leftSide = new SideArt
+    {
+        doorPosition = new Vector2(0.2f, 0.45f),
+        enemyFarPosition = new Vector2(0.12f, 0.5f),
+        enemyDoorPosition = new Vector2(0.25f, 0.45f),
+        placeholderColor = new Color(0.9f, 0.15f, 0.15f)
+    };
+    [SerializeField]
+    private SideArt rightSide = new SideArt
+    {
+        doorPosition = new Vector2(0.8f, 0.45f),
+        enemyFarPosition = new Vector2(0.88f, 0.5f),
+        enemyDoorPosition = new Vector2(0.75f, 0.45f),
+        placeholderColor = new Color(0.95f, 0.55f, 0.1f),
+        flipHorizontally = true
+    };
 
-    [Header("Creatures (2D sprites standing in the 3D hallways)")]
-    [Tooltip("Leave empty to use a plain coloured block until you have art.")]
-    [SerializeField] private Sprite leftEnemySprite;
-    [SerializeField] private Sprite rightEnemySprite;
-    [Tooltip("How tall a creature is in your office's units. Match this to the size of your model.")]
-    [SerializeField] private float enemyHeight = 2f;
-    [SerializeField] private float enemyWidth = 1f;      // only used for the plain placeholder block
+    [Header("Jumpscare")]
+    [SerializeField] private Vector2 jumpscarePosition = new Vector2(0.5f, 0.5f);
+    [Tooltip("Height of the creature when it gets you, as a fraction of the screen height.")]
+    [SerializeField] private float jumpscareHeight = 1.3f;
 
-    [Header("Camera")]
-    [SerializeField] private Vector2Int viewResolution = new Vector2Int(720, 1280);
-    [SerializeField] private float cameraFieldOfView = 70f;
-    [SerializeField] private float lookSensitivity = 0.15f;   // degrees turned per pixel dragged
-    [SerializeField] private float maxLookAngle = 40f;        // how far left/right you can look
-    [SerializeField] private float swayAngle = 1.5f;
-    [SerializeField] private float swayDistance = 0.04f;
-    [SerializeField] private float swaySpeed = 0.6f;
-
-    [Header("Lighting")]
-    [Tooltip("Switches off the scene's directional light and dims ambient light while this plays, so only the office's own lights show. Everything is restored afterwards.")]
-    [SerializeField] private bool darkenScene = true;
-    [SerializeField] private Color ambientWhileActive = new Color(0.04f, 0.04f, 0.06f);
+    [Header("Hide UI")]
+    [Tooltip("Objects to hide: buttons, power bar, texts, etc. Do NOT put this script's own root object here.")]
+    [SerializeField] private GameObject[] hideableUI;
+    [SerializeField] private bool hideUIDuringJumpscare = true;
+    [SerializeField] private bool hideUIWhenPowerOut = false;
+    [Tooltip("Optional: a button that toggles the UI on and off. Don't put it in the list above, or it will hide itself.")]
+    [SerializeField] private Button toggleUIButton;
 
     [Header("Enemies")]
     [SerializeField] private float moveIntervalMin = 3.5f;
@@ -91,48 +103,35 @@ public class LightsAndDoorsFinale : MicrogameBase
     [SerializeField] private float doorDrainPerSecond = 0.9f;   // per closed door
     [SerializeField] private float lightDrainPerSecond = 0.6f;  // per light that is on
 
-    /// <summary>Everything that belongs to one side (left or right) of the office.</summary>
     private class Side
     {
-        public OfficeRig.SideParts parts;
+        public SideArt art;
+        public Image lightImage;
+        public Image doorImage;
+        public Image enemyImage;
         public bool doorClosed;
         public bool lightOn;
         public int stage;            // 0 = gone, 1 = far, 2 = near, 3 = at the door
         public float moveTimer;
-        public float doorAmount;     // 0 = open, 1 = closed (animated)
-        public SpriteRenderer enemy;
     }
 
     private Side left;
     private Side right;
-    private OfficeRig rig;
-    private GameObject officeInstance;
-    private bool officeIsCopy;
-    private Transform lookPivot;
-    private Camera officeCamera;
-    private RenderTexture officeTexture;
-    private Sprite whiteSprite;
+    private RectTransform artRoot;     // holds all the pictures, behind the buttons
+    private RectTransform frontRoot;   // created for the jumpscare, on top of everything
 
     private float elapsed;
     private float power;
     private float statusTimer;
-    private float lookYaw;
     private bool powerOut;
     private bool hasFailed;
     private bool roundOver;
-    private bool setupFailed;
-
-    // Saved so the scene's lighting can be put back exactly as it was.
-    private readonly List<Light> dimmedLights = new List<Light>();
-    private bool sceneDimmed;
-    private UnityEngine.Rendering.AmbientMode savedAmbientMode;
-    private Color savedAmbientColor;
+    private bool uiHidden;
 
     // Longer than a normal microgame, and surviving to the end of the timer is the win.
     public override bool IgnoreDifficultyRamp => true;
     public override bool TimeoutCountsAsWin => !hasFailed;
 
-    // Runs when the script is first added in the editor, so the Inspector starts with sensible values.
     private void Reset()
     {
         instruction = "SURVIVE TILL 4 AM!";
@@ -145,57 +144,49 @@ public class LightsAndDoorsFinale : MicrogameBase
     {
         base.StartMicrogame();
 
-        CleanupWorld(); // in case a previous attempt left anything behind
+        CleanupArt(); // in case a previous attempt left anything behind
 
         elapsed = 0f;
         power = startingPower;
         statusTimer = 0f;
-        lookYaw = 0f;
         powerOut = false;
         hasFailed = false;
         roundOver = false;
-        setupFailed = false;
 
-        BuildWorld();
-        if (!setupFailed) WireButtons();
+        BuildArt();
+
+        SetUIHidden(false); // always start with the UI showing
+
+        if (toggleUIButton != null)
+        {
+            toggleUIButton.onClick.RemoveAllListeners();
+            toggleUIButton.onClick.AddListener(ToggleUI);
+        }
+
+        WireDoor(leftDoorButton, () => ToggleDoor(left));
+        WireDoor(rightDoorButton, () => ToggleDoor(right));
 
         if (statusText != null) statusText.text = "";
+        ApplyVisuals();
         UpdateButtonTints();
         UpdateHud(0f);
     }
 
     public override void ForceStop()
     {
-        roundOver = true; // stop updating; the world is cleaned up in OnDisable
+        roundOver = true;
     }
 
     private void OnDisable()
     {
-        CleanupWorld();
-    }
-
-    private void OnDestroy()
-    {
-        CleanupWorld();
-        if (whiteSprite != null) Destroy(whiteSprite);
+        SetUIHidden(false); // never leave the UI hidden
+        CleanupArt();
     }
 
     // ---------- Per-frame update (driven by MicrogameManager) ----------
 
     public override void TickMicrogame(float deltaTime)
     {
-        if (setupFailed)
-        {
-            // Setup is broken (see the Console). End the round instead of leaving the player stuck.
-            if (!roundOver)
-            {
-                roundOver = true;
-                hasFailed = true;
-                ReportResult(false);
-            }
-            return;
-        }
-
         if (roundOver || left == null || right == null) return;
 
         elapsed += deltaTime;
@@ -221,17 +212,11 @@ public class LightsAndDoorsFinale : MicrogameBase
             if (statusTimer <= 0f && !powerOut && statusText != null) statusText.text = "";
         }
 
-        AnimateWorld(deltaTime);
+        ApplyVisuals();
         UpdateHud(progress);
     }
 
     // ---------- Game rules ----------
-
-    private void WireButtons()
-    {
-        WireDoor(leftDoorButton, () => ToggleDoor(left));
-        WireDoor(rightDoorButton, () => ToggleDoor(right));
-    }
 
     private void WireDoor(Button button, UnityEngine.Events.UnityAction action)
     {
@@ -246,6 +231,7 @@ public class LightsAndDoorsFinale : MicrogameBase
         if (side == null || roundOver || powerOut) return;
         side.doorClosed = !side.doorClosed;
         UpdateButtonTints();
+        ApplyVisuals();
     }
 
     private void UpdatePower(float deltaTime)
@@ -265,6 +251,8 @@ public class LightsAndDoorsFinale : MicrogameBase
     private void TriggerPowerOut()
     {
         powerOut = true;
+        if (hideUIWhenPowerOut) SetUIHidden(true);
+
         left.doorClosed = false;
         right.doorClosed = false;
         left.lightOn = false;
@@ -273,7 +261,7 @@ public class LightsAndDoorsFinale : MicrogameBase
         if (leftDoorButton != null) leftDoorButton.interactable = false;
         if (rightDoorButton != null) rightDoorButton.interactable = false;
 
-        ShowStatus("POWER OUT!", 0f); // stays up for the rest of the night
+        ShowStatus("POWER OUT!", 0f);
         UpdateButtonTints();
     }
 
@@ -306,16 +294,17 @@ public class LightsAndDoorsFinale : MicrogameBase
     private IEnumerator JumpscareThenLose(Side side)
     {
         ShowStatus("!!!", 0f);
+        if (hideUIDuringJumpscare) SetUIHidden(true);
 
-        // Put the creature right in front of the camera, filling the screen.
-        Transform cam = officeCamera.transform;
-        const float distance = 1.2f;
-        float visibleHeight = 2f * distance * Mathf.Tan(officeCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
-
-        side.enemy.enabled = true;
-        side.enemy.transform.position = cam.position + cam.forward * distance;
-        side.enemy.transform.rotation = cam.rotation;
-        side.enemy.transform.localScale *= (visibleHeight * 1.2f) / Mathf.Max(0.01f, enemyHeight);
+        if (side.enemyImage != null)
+        {
+            // Move the creature to a layer above the buttons and fill the screen with it.
+            if (frontRoot == null) frontRoot = CreateFullScreenRoot("FinaleFront");
+            frontRoot.SetAsLastSibling();
+            side.enemyImage.rectTransform.SetParent(frontRoot, false);
+            side.enemyImage.enabled = true;
+            PlacePicture(side.enemyImage, side.art.enemySprite, jumpscarePosition, jumpscareHeight, side.art.flipHorizontally);
+        }
 
         yield return new WaitForSeconds(0.5f);
         ReportResult(false);
@@ -328,52 +317,51 @@ public class LightsAndDoorsFinale : MicrogameBase
         statusTimer = duration; // 0 = leave it up
     }
 
+    // ---------- Hide UI ----------
+
+    // Hides or shows everything in the Hideable UI list.
+    public void SetUIHidden(bool hidden)
+    {
+        uiHidden = hidden;
+        if (hideableUI == null) return;
+
+        foreach (GameObject obj in hideableUI)
+            if (obj != null) obj.SetActive(!hidden);
+    }
+
+    // Handy to hook up to a button's OnClick.
+    public void ToggleUI()
+    {
+        SetUIHidden(!uiHidden);
+    }
+
     // ---------- Visuals ----------
 
-    private void AnimateWorld(float deltaTime)
+    private void ApplyVisuals()
     {
-        // Drag to look around, plus a slow sway so the room never feels frozen.
-        if (lookArea != null)
-        {
-            lookYaw = Mathf.Clamp(lookYaw + lookArea.ConsumeDelta() * lookSensitivity, -maxLookAngle, maxLookAngle);
-        }
-
-        float t = Time.time * swaySpeed;
-        lookPivot.localRotation = Quaternion.Euler(0f, lookYaw + Mathf.Sin(t) * swayAngle, 0f);
-        officeCamera.transform.localPosition = new Vector3(
-            Mathf.Sin(t) * swayDistance,
-            Mathf.Sin(t * 0.7f + 1f) * swayDistance * 0.3f,
-            0f);
-
-        AnimateSide(left, deltaTime);
-        AnimateSide(right, deltaTime);
+        ApplySide(left);
+        ApplySide(right);
     }
 
-    private void AnimateSide(Side side, float deltaTime)
+    private void ApplySide(Side side)
     {
-        // Door slides shut/open, light follows the button.
-        side.doorAmount = Mathf.MoveTowards(side.doorAmount, side.doorClosed ? 1f : 0f, deltaTime * 4f);
-        rig.SetDoor(side.parts, side.doorAmount);
-        rig.SetLight(side.parts, side.lightOn);
+        if (side == null) return;
 
-        // The creature is only visible while the light is on, standing at its current spot.
-        Transform spot = StagePoint(side);
-        bool visible = side.lightOn && side.stage > 0 && spot != null;
-        side.enemy.enabled = visible;
+        if (side.lightImage != null) side.lightImage.enabled = side.lightOn;
+        if (side.doorImage != null) side.doorImage.enabled = side.doorClosed;
 
-        if (spot != null)
-        {
-            side.enemy.transform.position = spot.position;
-        }
-        // Turn it to face the camera so the flat sprite always reads clearly.
-        side.enemy.transform.rotation = officeCamera.transform.rotation;
-    }
+        if (side.enemyImage == null) return;
 
-    private static Transform StagePoint(Side side)
-    {
-        Transform[] points = side.parts.enemyStagePoints;
-        if (side.stage <= 0 || points == null || points.Length == 0) return null;
-        return points[Mathf.Clamp(side.stage - 1, 0, points.Length - 1)];
+        // The creature is only visible while the light is on and it is somewhere in the hallway.
+        bool visible = side.lightOn && side.stage > 0;
+        side.enemyImage.enabled = visible;
+        if (!visible) return;
+
+        // Stage 1 = far, stage 3 = at the door, stage 2 = halfway.
+        float t = (side.stage - 1) / 2f;
+        Vector2 position = Vector2.Lerp(side.art.enemyFarPosition, side.art.enemyDoorPosition, t);
+        float height = Mathf.Lerp(side.art.enemyFarHeight, side.art.enemyDoorHeight, t);
+        PlacePicture(side.enemyImage, side.art.enemySprite, position, height, side.art.flipHorizontally);
     }
 
     private void UpdateHud(float progress)
@@ -402,198 +390,114 @@ public class LightsAndDoorsFinale : MicrogameBase
         button.targetGraphic.color = closed ? new Color(1f, 0.45f, 0.45f) : Color.white;
     }
 
-    // ---------- Setting up and tearing down the office view ----------
+    // ---------- Building the pictures in code ----------
 
-    private void BuildWorld()
+    private void BuildArt()
     {
-        if (officeObject == null)
+        artRoot = CreateFullScreenRoot("FinaleArt");
+        artRoot.SetAsFirstSibling(); // behind your buttons and HUD
+
+        // Back to front: office, lights, doors, creatures.
+        if (officeSprite != null)
         {
-            Fail("No office assigned. Drag your office into the 'Office Object' field.");
-            return;
+            Image office = CreateImage("Office", artRoot, officeSprite);
+            Stretch(office.rectTransform);
         }
 
-        // A scene object is used as it is; a prefab asset gets a copy made far away.
-        if (officeObject.scene.IsValid())
-        {
-            officeInstance = officeObject;
-            officeIsCopy = false;
-        }
-        else
-        {
-            officeInstance = Instantiate(officeObject, worldOrigin, Quaternion.identity);
-            officeIsCopy = true;
-        }
-        officeInstance.SetActive(true);
+        left = new Side { art = leftSide, moveTimer = Random.Range(3f, 5f) };
+        right = new Side { art = rightSide, moveTimer = Random.Range(5f, 8f) };
 
-        rig = officeInstance.GetComponentInChildren<OfficeRig>(true);
-        if (rig == null)
-        {
-            Fail("The office has no OfficeRig component. Add one to the office's root object.");
-            return;
-        }
-        if (rig.cameraPoint == null)
-        {
-            Fail("The OfficeRig has no Camera Point. Add an empty object where the player sits and assign it.");
-            return;
-        }
+        left.lightImage = CreateLightImage("LeftLight", leftSide);
+        right.lightImage = CreateLightImage("RightLight", rightSide);
 
-        // Start from a clean state: doors open, lights off.
-        rig.SetDoor(rig.left, 0f);
-        rig.SetDoor(rig.right, 0f);
-        rig.SetLight(rig.left, false);
-        rig.SetLight(rig.right, false);
+        left.doorImage = CreateDoorImage("LeftDoor", leftSide);
+        right.doorImage = CreateDoorImage("RightDoor", rightSide);
 
-        // The camera sits on a pivot at the player's eyes, so the pivot can turn to look around.
-        GameObject pivotObject = new GameObject("LookPivot");
-        lookPivot = pivotObject.transform;
-        lookPivot.SetParent(rig.cameraPoint, false);
-
-        GameObject cameraObject = new GameObject("OfficeCamera");
-        cameraObject.transform.SetParent(lookPivot, false);
-        officeCamera = cameraObject.AddComponent<Camera>();
-        officeCamera.orthographic = false;
-        officeCamera.fieldOfView = cameraFieldOfView;
-        officeCamera.nearClipPlane = 0.05f;
-        officeCamera.farClipPlane = 200f;
-        officeCamera.clearFlags = CameraClearFlags.SolidColor;
-        officeCamera.backgroundColor = Color.black;
-        officeCamera.depth = -10f;
-
-        // Film into a texture instead of the screen, and show that texture in the UI.
-        officeTexture = new RenderTexture(viewResolution.x, viewResolution.y, 24);
-        officeCamera.targetTexture = officeTexture;
-        if (officeView != null) officeView.texture = officeTexture;
-
-        if (whiteSprite == null) whiteSprite = CreateWhiteSprite();
-        left = BuildSide(rig.left, "Left", leftEnemySprite, new Color(0.9f, 0.15f, 0.15f), 3f, 5f);
-        right = BuildSide(rig.right, "Right", rightEnemySprite, new Color(0.95f, 0.55f, 0.10f), 5f, 8f);
-
-        DarkenScene();
+        left.enemyImage = CreateEnemyImage("LeftEnemy", leftSide);
+        right.enemyImage = CreateEnemyImage("RightEnemy", rightSide);
     }
 
-    private void Fail(string message)
+    private Image CreateLightImage(string name, SideArt art)
     {
-        Debug.LogError("LightsAndDoorsFinale: " + message);
-        setupFailed = true;
+        if (art.lightSprite == null) return null;
+        Image image = CreateImage(name, artRoot, art.lightSprite);
+        Stretch(image.rectTransform);
+        image.enabled = false;
+        return image;
     }
 
-    private Side BuildSide(OfficeRig.SideParts parts, string label, Sprite sprite,
-        Color placeholderColor, float minDelay, float maxDelay)
+    private Image CreateDoorImage(string name, SideArt art)
     {
-        Side side = new Side();
-        side.parts = parts;
-
-        // Creatures live at the scene root (not inside the office) so the office's own scale can't distort them.
-        GameObject enemyObject = new GameObject(label + "Enemy");
-        side.enemy = enemyObject.AddComponent<SpriteRenderer>();
-
-        bool usingArt = sprite != null;
-        side.enemy.sprite = usingArt ? sprite : whiteSprite;
-        side.enemy.color = usingArt ? Color.white : placeholderColor;
-
-        Vector2 native = side.enemy.sprite.bounds.size;
-        float scaleY = enemyHeight / native.y;
-        float scaleX = usingArt ? scaleY : enemyWidth / native.x; // art keeps its own proportions
-        enemyObject.transform.localScale = new Vector3(scaleX, scaleY, 1f);
-        side.enemy.enabled = false;
-
-        // Stagger the two sides so they don't both arrive at once.
-        side.moveTimer = Random.Range(minDelay, maxDelay);
-        return side;
+        if (art.doorSprite == null) return null;
+        Image image = CreateImage(name, artRoot, art.doorSprite);
+        PlacePicture(image, art.doorSprite, art.doorPosition, art.doorHeight, false);
+        image.enabled = false;
+        return image;
     }
 
-    // A 1x1-unit white square, so placeholder creatures need no art assets at all.
-    private static Sprite CreateWhiteSprite()
+    private Image CreateEnemyImage(string name, SideArt art)
     {
-        Texture2D texture = Texture2D.whiteTexture;
-        return Sprite.Create(
-            texture,
-            new Rect(0f, 0f, texture.width, texture.height),
-            new Vector2(0.5f, 0.5f),
-            texture.width);
+        Image image = CreateImage(name, artRoot, art.enemySprite);
+        if (art.enemySprite == null) image.color = art.placeholderColor; // plain block until you have art
+        PlacePicture(image, art.enemySprite, art.enemyFarPosition, art.enemyFarHeight, art.flipHorizontally);
+        image.enabled = false;
+        return image;
     }
 
-    private void DarkenScene()
+    private RectTransform CreateFullScreenRoot(string name)
     {
-        if (!darkenScene || sceneDimmed) return;
-
-        // Switch off other directional lights (a new scene comes with one) so
-        // the office's own lights are what you see.
-        dimmedLights.Clear();
-        foreach (Light sceneLight in FindObjectsByType<Light>(FindObjectsSortMode.None))
-        {
-            bool isOfficeLight = officeInstance != null && sceneLight.transform.IsChildOf(officeInstance.transform);
-            if (sceneLight.type == LightType.Directional && sceneLight.enabled && !isOfficeLight)
-            {
-                sceneLight.enabled = false;
-                dimmedLights.Add(sceneLight);
-            }
-        }
-
-        savedAmbientMode = RenderSettings.ambientMode;
-        savedAmbientColor = RenderSettings.ambientLight;
-        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = ambientWhileActive;
-        sceneDimmed = true;
+        GameObject go = new GameObject(name, typeof(RectTransform));
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.SetParent(transform, false);
+        Stretch(rt);
+        return rt;
     }
 
-    private void RestoreScene()
+    private static Image CreateImage(string name, RectTransform parent, Sprite sprite)
     {
-        if (!sceneDimmed) return;
-
-        foreach (Light sceneLight in dimmedLights)
-        {
-            if (sceneLight != null) sceneLight.enabled = true;
-        }
-        dimmedLights.Clear();
-
-        RenderSettings.ambientMode = savedAmbientMode;
-        RenderSettings.ambientLight = savedAmbientColor;
-        sceneDimmed = false;
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(parent, false);
+        Image image = go.GetComponent<Image>();
+        image.sprite = sprite;
+        image.raycastTarget = false; // never block your buttons
+        return image;
     }
 
-    private void CleanupWorld()
+    private static void Stretch(RectTransform rt)
     {
-        if (officeCamera != null)
-        {
-            officeCamera.enabled = false; // stop it before its texture goes away
-            officeCamera.targetTexture = null;
-        }
-        if (officeView != null) officeView.texture = null;
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+    }
 
-        if (officeTexture != null)
-        {
-            officeTexture.Release();
-            Destroy(officeTexture);
-            officeTexture = null;
-        }
+    // Puts a picture at a screen-fraction position with a given height (fraction of screen height).
+    private void PlacePicture(Image image, Sprite sprite, Vector2 position, float heightFraction, bool flip)
+    {
+        RectTransform rt = image.rectTransform;
+        RectTransform container = rt.parent as RectTransform;
+        float screenHeight = container != null ? container.rect.height : Screen.height;
 
-        if (lookPivot != null)
-        {
-            Destroy(lookPivot.gameObject); // takes the camera with it
-            lookPivot = null;
-        }
+        float aspect = 0.5f; // plain placeholder block is a tall rectangle
+        if (sprite != null && sprite.rect.height > 0f) aspect = sprite.rect.width / sprite.rect.height;
 
-        DestroyEnemy(left);
-        DestroyEnemy(right);
+        float height = screenHeight * heightFraction;
 
-        if (officeInstance != null)
-        {
-            if (officeIsCopy) Destroy(officeInstance);
-            else officeInstance.SetActive(false);
-        }
+        rt.anchorMin = position;
+        rt.anchorMax = position;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = new Vector2(height * aspect, height);
+        rt.localScale = new Vector3(flip ? -1f : 1f, 1f, 1f);
+    }
 
-        RestoreScene();
-
-        officeCamera = null;
-        officeInstance = null;
-        rig = null;
+    private void CleanupArt()
+    {
+        if (artRoot != null) Destroy(artRoot.gameObject);
+        if (frontRoot != null) Destroy(frontRoot.gameObject);
+        artRoot = null;
+        frontRoot = null;
         left = null;
         right = null;
-    }
-
-    private static void DestroyEnemy(Side side)
-    {
-        if (side != null && side.enemy != null) Destroy(side.enemy.gameObject);
     }
 }
