@@ -15008,7 +15008,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1514611747}
-  - component: {fileID: 1514611746}
   - component: {fileID: 1514611748}
   m_Layer: 0
   m_Name: MicroGameManager
@@ -15017,18 +15016,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1514611746
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1514611745}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3e33c1e0bd6e6b40b787d37ad57e8ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MicrogameManager
 --- !u!4 &1514611747
 Transform:
   m_ObjectHideFlags: 0
@@ -15075,6 +15062,8 @@ MonoBehaviour:
   speedRampEveryNGames: 4
   speedRampMultiplier: 0.9
   minimumTimeLimit: 1.2
+  normalRunLength: 8
+  practiceRounds: 4
   instructionText: {fileID: 686868568}
   livesText: {fileID: 1542803973}
   gameCountText: {fileID: 1766362770}
@@ -15083,8 +15072,8 @@ MonoBehaviour:
   goBanner: {fileID: 558659280}
   resultsPanel: {fileID: 1565770890}
   resultsSummaryText: {fileID: 1303107039}
-  dialoguePlayer: {fileID: 0}
-  introSequence: {fileID: 0}
+  dialoguePlayer: {fileID: 389149043}
+  introSequence: {fileID: 11400000, guid: 9215830a6bb27a64ba844d4be6dd244c, type: 2}
   interludeSequences: []
   gamesPerInterlude: 4
   livesBreakScreen: {fileID: 1827713189}
@@ -17567,7 +17556,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 131.16, y: 3.56}
+  m_AnchoredPosition: {x: 131.16003, y: 3.5600586}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1766362770

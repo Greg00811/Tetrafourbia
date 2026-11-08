@@ -1,24 +1,43 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using TMPro;
+
+/// <summary>
+/// Main menu controller for a WarioWare-style microgame collection
+/// themed around the number FOUR.
+///
+/// Concept: everything comes in fours.
+///   - 4 menu options, arranged in a spinning "+"-shaped cross
+///   - A "4-second" countdown pulse plays behind the menu (idle animation)
+///   - Pressing Start triggers a quad-flash transition (4 flashes) before loading
+///   - LEVELS opens a level select screen to replay any single microgame
+///
+/// Setup:
+///   1. Create a Canvas with 4 Buttons (Start, Levels, Extras, Quit) and
+///      assign them in the inspector. Buttons can use TextMeshPro labels.
+///   2. Add a CanvasGroup to a full-screen white Image for the flash transition.
+///   3. Attach this script to an empty "MenuController" GameObject.
+///
+/// NOTE: This version uses TextMeshPro (TMP_Text / TextMeshProUGUI) for all
+/// text fields instead of legacy UI.Text. Make sure your Text objects were
+/// created via GameObject -> UI -> Text (TMP), not the Legacy variant.
+/// </summary>
 public class FourMainMenu : MonoBehaviour
 {
     [Header("Core Menu Buttons (exactly 4)")]
     [SerializeField] private Button[] menuButtons = new Button[4];
-    [SerializeField] private string[] buttonLabels = { "START", "TIERS", "EXTRAS", "QUIT" };
+    [SerializeField] private string[] buttonLabels = { "START", "LEVELS", "EXTRAS", "QUIT" };
 
     [Header("Countdown / Idle Pulse")]
     [SerializeField] private TMP_Text countdownText;
     [SerializeField] private float pulseInterval = 1f; // ticks 4,3,2,1 then loops
-    [SerializeField] private RectTransform logoCross;   
+    [SerializeField] private RectTransform logoCross;   // the "+"-shaped 4 logo
     [SerializeField] private float spinSpeed = 45f;
 
-    [Header("Difficulty Tiers")]
-    [SerializeField] private int[] tierGameCounts = { 4, 8, 16, 32 };
-    private int currentTierIndex = 0;
-    [SerializeField] private TMP_Text tierDisplayText;
+    [Header("Level Select")]
+    [SerializeField] private LevelSelectMenu levelSelect;
 
     [Header("Transition")]
     [SerializeField] private CanvasGroup flashOverlay;
@@ -32,10 +51,11 @@ public class FourMainMenu : MonoBehaviour
     [SerializeField] private AudioClip confirmSFX;
 
     private Coroutine countdownRoutine;
+    private bool starting;
 
     private void Awake()
     {
-
+        // Wire up buttons defensively in case the inspector array is out of order.
         if (menuButtons.Length != 4)
         {
             Debug.LogWarning("FourMainMenu expects exactly 4 buttons for thematic consistency.");
@@ -46,14 +66,19 @@ public class FourMainMenu : MonoBehaviour
             int index = i; // capture for closure
             if (menuButtons[i] == null) continue;
 
-            var label = menuButtons[i].GetComponentInChildren<Text>();
+            var label = menuButtons[i].GetComponentInChildren<TMP_Text>();
             if (label != null && index < buttonLabels.Length)
                 label.text = buttonLabels[index];
 
             menuButtons[i].onClick.AddListener(() => OnMenuButtonPressed(index));
         }
 
-        UpdateTierDisplay();
+        if (levelSelect != null) levelSelect.OnLevelChosen += HandleLevelChosen;
+    }
+
+    private void OnDestroy()
+    {
+        if (levelSelect != null) levelSelect.OnLevelChosen -= HandleLevelChosen;
     }
 
     private void OnEnable()
@@ -68,14 +93,17 @@ public class FourMainMenu : MonoBehaviour
 
     private void Update()
     {
-      
+        // Idle spin on the "4" logo cross — purely decorative flair.
         if (logoCross != null)
         {
             logoCross.Rotate(0f, 0f, spinSpeed * Time.deltaTime);
         }
     }
 
-
+    /// <summary>
+    /// Ticks 4 -> 3 -> 2 -> 1 -> (flash) -> repeat, WarioWare-style,
+    /// just as ambient menu energy. Doesn't auto-start the game.
+    /// </summary>
     private IEnumerator CountdownPulse()
     {
         while (true)
@@ -115,11 +143,13 @@ public class FourMainMenu : MonoBehaviour
 
         switch (index)
         {
-            case 0: // START
+            case 0: // START - a normal run through every microgame
+                PlayerPrefs.SetInt(LevelSelectMenu.PrefKey, -1);
                 StartCoroutine(StartGameSequence());
                 break;
-            case 1: // TIERS - cycle through the 4 difficulty tiers
-                CycleTier();
+            case 1: // LEVELS - pick one microgame to replay
+                if (levelSelect != null) levelSelect.Open();
+                else Debug.LogWarning("FourMainMenu: assign 'Level Select' to use the LEVELS button.");
                 break;
             case 2: // EXTRAS
                 Debug.Log("Open extras/credits screen (implement scene or panel toggle here).");
@@ -130,25 +160,22 @@ public class FourMainMenu : MonoBehaviour
         }
     }
 
-    private void CycleTier()
+    private void HandleLevelChosen(int levelIndex)
     {
-        currentTierIndex = (currentTierIndex + 1) % tierGameCounts.Length;
-        UpdateTierDisplay();
+        // The gameplay scene reads this to replay just that microgame.
+        PlayerPrefs.SetInt(LevelSelectMenu.PrefKey, levelIndex);
+        StartCoroutine(StartGameSequence());
     }
 
-    private void UpdateTierDisplay()
-    {
-        if (tierDisplayText != null)
-        {
-            tierDisplayText.text = $"{tierGameCounts[currentTierIndex]} GAMES";
-        }
-   
-        PlayerPrefs.SetInt("SelectedMicrogameCount", tierGameCounts[currentTierIndex]);
-    }
-
-
+    /// <summary>
+    /// Quad-flash transition: flashes the overlay 4 times before loading
+    /// the gameplay scene, echoing the classic WarioWare "ready?" beat.
+    /// </summary>
     private IEnumerator StartGameSequence()
     {
+        if (starting) yield break;
+        starting = true;
+
         foreach (var btn in menuButtons)
         {
             if (btn != null) btn.interactable = false;
@@ -163,7 +190,8 @@ public class FourMainMenu : MonoBehaviour
             }
         }
         else
-        { 
+        {
+            // Fallback delay if no overlay assigned.
             yield return new WaitForSeconds(flashDuration * flashCount * 2f);
         }
 

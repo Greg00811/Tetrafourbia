@@ -10,8 +10,9 @@ using TMPro;
 ///   - Player starts with 4 lives
 ///   - Each microgame gets a shrinking time limit (starts near 4 seconds)
 ///   - Every 4 microgames cleared, speed ramps up a notch
-///   - Session length comes from the main menu's tier choice
-///     (4 / 8 / 16 / 32 games), read from PlayerPrefs("SelectedMicrogameCount")
+///   - START plays a normal run of "Normal Run Length" games, then the finale
+///   - LEVELS on the menu replays one chosen microgame for "Practice Rounds" rounds
+///     (the choice is read from PlayerPrefs, saved by the menu)
 ///
 /// Setup:
 ///   1. Put each microgame on its own child GameObject under a common parent,
@@ -31,6 +32,10 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private int speedRampEveryNGames = 4; // ramp up every 4 clears
     [SerializeField] private float speedRampMultiplier = 0.9f; // time limit shrinks 10% per ramp
     [SerializeField] private float minimumTimeLimit = 1.2f;
+
+    [Header("Run Lengths")]
+    [SerializeField] private int normalRunLength = 8;  // games in a normal run from START
+    [SerializeField] private int practiceRounds = 4;   // rounds when replaying one level from LEVELS
 
     [Header("UI References")]
     [SerializeField] private TMP_Text instructionText;
@@ -64,6 +69,8 @@ public class MicrogameManager : MonoBehaviour
     private int interludeIndex;
     private bool lastRoundWon;
     private bool finaleWon;
+    private bool sessionBroken; // set if setup is wrong, so we stop instead of erroring every frame
+    private GameObject practiceMicrogame; // set when replaying a single level
     private int currentLives;
     private float currentTimeLimitMultiplier = 1f;
     private List<GameObject> shuffledBag = new List<GameObject>();
@@ -72,7 +79,22 @@ public class MicrogameManager : MonoBehaviour
 
     private void Start()
     {
-        totalGamesThisSession = PlayerPrefs.GetInt("SelectedMicrogameCount", 4);
+        // -1 = normal run. 0, 1, 2... = replay that one microgame (the finale is the entry after the list).
+        int level = PlayerPrefs.GetInt(LevelSelectMenu.PrefKey, -1);
+        practiceMicrogame = null;
+
+        if (level >= 0 && microgamePrefabsOrObjects != null)
+        {
+            if (level < microgamePrefabsOrObjects.Length)
+                practiceMicrogame = microgamePrefabsOrObjects[level];
+            else if (level == microgamePrefabsOrObjects.Length && finaleMicrogame != null)
+                practiceMicrogame = finaleMicrogame;
+        }
+
+        if (practiceMicrogame == null)
+            totalGamesThisSession = normalRunLength;
+        else
+            totalGamesThisSession = practiceMicrogame == finaleMicrogame ? 1 : practiceRounds; // the finale is long, so once is enough
         currentLives = startingLives;
 
         foreach (var obj in microgamePrefabsOrObjects)
@@ -97,9 +119,9 @@ public class MicrogameManager : MonoBehaviour
     private IEnumerator RunSession()
     {
         // Story beat before anything else starts.
-        yield return StartCoroutine(PlayNarrative(introSequence));
+        if (practiceMicrogame == null) yield return StartCoroutine(PlayNarrative(introSequence));
 
-        while (gamesClearedCount < totalGamesThisSession && currentLives > 0)
+        while (gamesClearedCount < totalGamesThisSession && currentLives > 0 && !sessionBroken)
         {
             int livesBefore = currentLives;
             int clearedBefore = gamesClearedCount;
@@ -123,7 +145,7 @@ public class MicrogameManager : MonoBehaviour
             bool sessionOver = gamesClearedCount >= totalGamesThisSession || currentLives <= 0;
             bool interludeDue = gamesPerInterlude > 0 && roundsPlayed % gamesPerInterlude == 0;
 
-            if (!sessionOver && interludeDue
+            if (practiceMicrogame == null && !sessionOver && interludeDue
                 && interludeSequences != null && interludeIndex < interludeSequences.Length)
             {
                 yield return StartCoroutine(PlayNarrative(interludeSequences[interludeIndex]));
@@ -133,7 +155,7 @@ public class MicrogameManager : MonoBehaviour
 
         // Finale: only if every normal game was cleared with lives to spare.
         // Losing it costs a life and replays it until you win or run out of lives.
-        if (finaleMicrogame != null && gamesClearedCount >= totalGamesThisSession && currentLives > 0)
+        if (practiceMicrogame == null && finaleMicrogame != null && gamesClearedCount >= totalGamesThisSession && currentLives > 0)
         {
             yield return StartCoroutine(PlayNarrative(finaleIntroSequence));
 
@@ -168,6 +190,14 @@ public class MicrogameManager : MonoBehaviour
         }
 
         GameObject chosenObject = forcedMicrogame != null ? forcedMicrogame : PickNextMicrogame();
+
+        if (chosenObject == null)
+        {
+            Debug.LogError("MicrogameManager: there are no microgames to play. The 'Microgame Prefabs Or Objects' list on THIS component is empty. " +
+                           "If the object has more than one Microgame Manager component, delete the extra one.", this);
+            sessionBroken = true;
+            yield break;
+        }
         activeMicrogame = chosenObject.GetComponent<MicrogameBase>();
 
         if (activeMicrogame == null)
@@ -248,6 +278,9 @@ public class MicrogameManager : MonoBehaviour
 
     private GameObject PickNextMicrogame()
     {
+        // Replaying one level: always the same microgame.
+        if (practiceMicrogame != null) return practiceMicrogame;
+
         // "Shuffled bag" approach: avoids repeats until every microgame has
         // played once, then reshuffles. Feels more varied than pure random.
         if (shuffledBag.Count == 0)
@@ -259,6 +292,8 @@ public class MicrogameManager : MonoBehaviour
                 (shuffledBag[i], shuffledBag[swapIndex]) = (shuffledBag[swapIndex], shuffledBag[i]);
             }
         }
+
+        if (shuffledBag.Count == 0) return null; // nothing to pick from
 
         GameObject next = shuffledBag[0];
         shuffledBag.RemoveAt(0);
@@ -280,7 +315,7 @@ public class MicrogameManager : MonoBehaviour
     private void EndSession()
     {
         bool clearedAll = gamesClearedCount >= totalGamesThisSession
-            && (finaleMicrogame == null || finaleWon);
+            && (practiceMicrogame != null || finaleMicrogame == null || finaleWon);
 
         if (resultsPanel != null)
         {
@@ -294,6 +329,16 @@ public class MicrogameManager : MonoBehaviour
                 ? $"CLEARED ALL {totalGamesThisSession}!"
                 : $"GAME OVER\n{gamesClearedCount} / {totalGamesThisSession} cleared";
         }
+    }
+
+    /// <summary>
+    /// Optional "Play Again" button on the results panel. Reloads this scene, and
+    /// since the chosen level is still saved, it replays the same level (or a
+    /// fresh normal run if that is what you were playing).
+    /// </summary>
+    public void Retry()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     /// <summary>Hook this up to a "Back to Menu" button on the results panel.</summary>
