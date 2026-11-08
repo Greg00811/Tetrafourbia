@@ -15078,7 +15078,7 @@ MonoBehaviour:
   gamesPerInterlude: 4
   livesBreakScreen: {fileID: 1827713189}
   finaleMicrogame: {fileID: 984548280}
-  finaleIntroSequence: {fileID: 0}
+  finaleIntroSequence: {fileID: 11400000, guid: 7d36d59a176f3584d855f507f810f2f1, type: 2}
   mainMenuSceneName: MainMenu
 --- !u!1 &1515347944
 GameObject:
@@ -18969,7 +18969,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1895128390
 MonoBehaviour:
   m_ObjectHideFlags: 0

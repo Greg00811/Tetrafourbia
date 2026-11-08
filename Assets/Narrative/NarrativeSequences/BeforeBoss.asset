@@ -16,9 +16,19 @@ MonoBehaviour:
   defaultNpcSprite: {fileID: 21300000, guid: 2c3aec1d7ff49bf4ea021d689a4fe10a, type: 3}
   lines:
   - speakerName: Quade (Therapy AI Assistant)
-    text: "//BEGINNER PROTOCOL LIFTED//\n\r\nI don't believe it.\r\nSurpassed every
-      challenge with ease. Perhaps I made the trials too easy. You are afraid of
-      the number four, correct? \r\nDoctor Greg - he told me everything about your
-      affliction. I am not convinced that you are cured. \r\nYou need to face this
-      fear head-on. For that to register, you will need much stricter exposure."
-    npcSprite: {fileID: 0}
+    text: //BEGINNER PROTOCOL LIFTED//
+    npcSprite: {fileID: 21300000, guid: b33532affe6bf4f40a146429efb83b31, type: 3}
+  - speakerName: Quade (Therapy AI Assistant)
+    text: 'I don''t believe it.
+
+      You surpassed every challenge with ease.
+      Perhaps I made the trials too easy... '
+    npcSprite: {fileID: 21300000, guid: f8105097818046345aa5a38f9263747e, type: 3}
+  - speakerName: Quade (Therapy AI Assistant)
+    text: You are afraid of the number four, correct..?
+    npcSprite: {fileID: 21300000, guid: ad6fb7622aa6b0c409c09eee9d2307cd, type: 3}
+  - speakerName: Quade (Therapy AI Assistant)
+    text: Doctor Greg - he told me everything about your affliction. I am not convinced
+      that you are cured. You need to face this fear head-on. For that to register,
+      you will need much stricter exposure.
+    npcSprite: {fileID: 21300000, guid: a93e905e278c4644a8da2b9799448643, type: 3}
