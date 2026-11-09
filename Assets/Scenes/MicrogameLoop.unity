@@ -2876,7 +2876,7 @@ MonoBehaviour:
   playerDead: 0
   jumpButton: {fileID: 759594411}
   jumpTime: 0.4
-  jumpHeight: 200
+  jumpHeight: 100
   playerPrefab: {fileID: 7669357908645884518, guid: e32c0a357d15bd6478a3153517e79eaf, type: 3}
   playerParent: {fileID: 485707822}
 --- !u!1 &339745344
@@ -17274,7 +17274,7 @@ MonoBehaviour:
   - {fileID: 1565770886}
   removeOnEnd:
   - {fileID: 558419312}
-  - {fileID: 1895128389}
+  - {fileID: 0}
   bringResultsToFront: 1
   resultsSortingOrder: 1000
   dialoguePlayer: {fileID: 389149043}
@@ -17282,7 +17282,7 @@ MonoBehaviour:
   interludeSequences: []
   gamesPerInterlude: 4
   livesBreakScreen: {fileID: 1827713189}
-  finaleEnabled: 0
+  finaleEnabled: 1
   finaleMicrogame: {fileID: 984548280}
   finaleIntroSequence: {fileID: 11400000, guid: 7d36d59a176f3584d855f507f810f2f1, type: 2}
   mainMenuSceneName: MainMenu
@@ -20823,13 +20823,13 @@ MonoBehaviour:
   - {fileID: 938470900}
   - {fileID: 1424331039}
   lightColors:
-  - {r: 1, g: 0.5615012, b: 0, a: 0.5019608}
-  - {r: 0.5780243, g: 0, b: 0.6792453, a: 0.5019608}
-  - {r: 0, g: 0.64949584, b: 0.6784314, a: 0.5019608}
-  - {r: 0, g: 0.6784314, b: 0.111867964, a: 0.5019608}
-  - {r: 1, g: 0.00000005066395, b: 0, a: 0.5019608}
-  - {r: 1, g: 0.88772, b: 0, a: 0.5019608}
-  - {r: 1, g: 0.4764151, b: 0.95005995, a: 0.5019608}
+  - {r: 1, g: 0.5615012, b: 0, a: 0.29803923}
+  - {r: 0.5780243, g: 0, b: 0.6792453, a: 0.29803923}
+  - {r: 0, g: 0.64949584, b: 0.6784314, a: 0.29803923}
+  - {r: 0, g: 0.6784314, b: 0.111867964, a: 0.29803923}
+  - {r: 1, g: 0.00000005066395, b: 0, a: 0.29803923}
+  - {r: 1, g: 0.88772, b: 0, a: 0.29803923}
+  - {r: 1, g: 0.4764151, b: 0.95005995, a: 0.29803923}
   lightsChain: 4
   flashTime: 0.15
   audioSource: {fileID: 1825379207}
