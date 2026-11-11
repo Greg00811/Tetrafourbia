@@ -4,14 +4,10 @@ using UnityEngine;
 
 /// <summary>
 /// Microgame: keep every ball in play until the timer runs out.
-/// The MicrogameManager owns the timer. If it runs out and FailState()
-/// was never called, the round counts as a WIN (TimeoutCountsAsWin).
-/// Balls spawn in a strip along the TOP of the Play Area, fall with Rigidbody2D
-/// gravity, bounce off the sides and top, bounce off the paddle, and lose the
-/// round if one falls out the bottom. Paddle bounce and the floor are handled
-/// in code (no colliders needed).
+/// The timer length is fixed (Base Time Limit) and does NOT shrink. Instead, higher
+/// difficulty makes the balls faster, up to a maximum so it never becomes impossible.
 /// </summary>
-public class BallJuggle : MicrogameBase
+public class BallJuggle : MicrogameBase, IDifficultyAware
 {
     [Header("Balls")]
     [SerializeField] private GameObject ballPrefab;
@@ -20,7 +16,7 @@ public class BallJuggle : MicrogameBase
     [SerializeField] private float ballSpawnWidth = 300f;
     [Tooltip("How tall the spawn strip is, measured down from the top of the Play Area (pixels).")]
     [SerializeField] private float ballSpawnHeight = 40f;
-    [Tooltip("How far below the top edge of the Play Area balls spawn (pixels). Keeps them at the top, away from the paddle.")]
+    [Tooltip("How far below the top edge of the Play Area balls spawn (pixels).")]
     [SerializeField] private float spawnTopMargin = 20f;
     [Tooltip("Shifts the spawn strip left or right. (Y is ignored; balls always spawn at the top.)")]
     [SerializeField] private Vector2 spawnCenterOffset = Vector2.zero;
@@ -32,21 +28,24 @@ public class BallJuggle : MicrogameBase
     [SerializeField] private float startSidewaysSpeed = 150f;
     [SerializeField] private Vector2 startDownSpeedRange = new Vector2(0f, 100f);
 
+    [Header("Difficulty (balls get faster)")]
+    [Tooltip("How much faster the balls get per +1.0 of difficulty. 0.5 = 50% faster per full step.")]
+    [SerializeField] private float speedPerDifficulty = 0.5f;
+    [Tooltip("The balls never go more than this many times faster than normal.")]
+    [SerializeField] private float maxSpeedMultiplier = 1.8f;
+    [Tooltip("Hard cap on any ball's speed (pixels per second), so it can never become impossible.")]
+    [SerializeField] private float maxBallSpeed = 1400f;
+
     [Header("Paddle")]
     [SerializeField] private GameObject paddle;
     [Tooltip("Optional. Leave empty to put the paddle inside the Play Area.")]
     [SerializeField] private Transform paddleParent;
-    [Tooltip("1 = ball keeps its speed when it bounces up off the paddle.")]
     [SerializeField] private float paddleBounciness = 1f;
-    [Tooltip("The ball always bounces up at least this fast (pixels per second).")]
     [SerializeField] private float minPaddleBounceSpeed = 600f;
-    [Tooltip("Hitting the paddle off-center pushes the ball sideways by up to this much.")]
     [SerializeField] private float paddleSteer = 300f;
-    [Tooltip("How far above the bottom of the Play Area the paddle sits (pixels). Lower = closer to the bottom.")]
     [SerializeField] private float paddleBottomOffset = 120f;
 
     [Header("Losing")]
-    [Tooltip("A ball counts as lost once it is this many pixels below the bottom of the Play Area.")]
     [SerializeField] private float floorMargin = 0f;
 
     [Header("Play Area & Player")]
@@ -59,15 +58,12 @@ public class BallJuggle : MicrogameBase
     [SerializeField] private bool bounceOffSides = true;
     [SerializeField] private float sideBounciness = 1f;
     [SerializeField] private bool bounceOffTop = true;
-    [Tooltip("1 = keeps all its speed bouncing off the top, below 1 = loses some.")]
     [SerializeField] private float topBounciness = 1f;
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
-    [Tooltip("Plays when a ball hits the left, right or top wall. A random clip is used each time.")]
     [SerializeField] private AudioClip[] bounceSFX;
     [Range(0f, 1f)] [SerializeField] private float bounceVolume = 1f;
-    [Tooltip("Plays when a ball hits the paddle. If empty, the wall bounce sound is used instead.")]
     [SerializeField] private AudioClip[] paddleHitSFX;
     [Range(0f, 1f)] [SerializeField] private float paddleHitVolume = 1f;
     [Range(0f, 0.5f)] [SerializeField] private float pitchVariation = 0.1f;
@@ -79,11 +75,25 @@ public class BallJuggle : MicrogameBase
     private RectTransform playerShip;
     private bool gameActive;
     private bool hasFailed;
+    private float difficulty = 1f;
     private float lastBounceSoundTime = -10f;
     private float lastPaddleSoundTime = -10f;
 
-    // Surviving until the manager's timer runs out is the win.
+    // Surviving until the timer runs out is the win.
     public override bool TimeoutCountsAsWin => !hasFailed;
+
+    // The timer stays at Base Time Limit instead of shrinking as the run goes on.
+    public override bool IgnoreDifficultyRamp => true;
+
+    // Called by MicrogameManager just before the round starts.
+    public void SetDifficulty(float value)
+    {
+        difficulty = Mathf.Max(1f, value);
+    }
+
+    // 1 = normal speed. Grows with difficulty, but never above the max.
+    private float SpeedMultiplier =>
+        Mathf.Min(maxSpeedMultiplier, 1f + (difficulty - 1f) * speedPerDifficulty);
 
     // ---------- Lifecycle ----------
 
@@ -108,7 +118,6 @@ public class BallJuggle : MicrogameBase
 
             if (playerShip != null && playArea != null)
             {
-                // Anchor to the center and place the paddle a set distance above the bottom edge.
                 playerShip.anchorMin = playerShip.anchorMax = new Vector2(0.5f, 0.5f);
                 playerShip.anchoredPosition = new Vector2(
                     0f,
@@ -145,7 +154,6 @@ public class BallJuggle : MicrogameBase
 
     // ---------- Sound ----------
 
-    // Wall bounce sound (left, right, top).
     public void PlayBounceSound()
     {
         if (Time.time - lastBounceSoundTime < bounceSoundCooldown) return;
@@ -153,7 +161,6 @@ public class BallJuggle : MicrogameBase
             lastBounceSoundTime = Time.time;
     }
 
-    // Paddle hit sound. Falls back to the wall sound if no paddle clips are assigned.
     public void PlayPaddleHitSound()
     {
         if (paddleHitSFX == null || paddleHitSFX.Length == 0)
@@ -190,7 +197,8 @@ public class BallJuggle : MicrogameBase
 
             if (i < number - 1)
             {
-                float wait = spawnTime + Random.Range(-spawnTimeVariation, spawnTimeVariation);
+                // Spawn gaps shrink with speed too, so the whole round feels faster.
+                float wait = (spawnTime + Random.Range(-spawnTimeVariation, spawnTimeVariation)) / SpeedMultiplier;
                 if (wait > 0f) yield return new WaitForSeconds(wait);
             }
         }
@@ -208,8 +216,14 @@ public class BallJuggle : MicrogameBase
         Rigidbody2D rb = ball.GetComponent<Rigidbody2D>();
         if (rb != null)
         {
-            float sideways = Random.Range(-startSidewaysSpeed, startSidewaysSpeed);
-            float down = -Random.Range(startDownSpeedRange.x, startDownSpeedRange.y);
+            float m = SpeedMultiplier;
+
+            // Speeding everything up by m means velocities x m and gravity x m squared,
+            // so the ball follows the same path, just faster.
+            rb.gravityScale *= m * m;
+
+            float sideways = Random.Range(-startSidewaysSpeed, startSidewaysSpeed) * m;
+            float down = -Random.Range(startDownSpeedRange.x, startDownSpeedRange.y) * m;
             SetVelocity(rb, new Vector2(sideways, down));
         }
         else
@@ -220,7 +234,6 @@ public class BallJuggle : MicrogameBase
 
     private Vector3 PickSpawnPosition()
     {
-        // Balls always spawn in a strip along the TOP of the Play Area.
         float halfBall = 25f;
         RectTransform ballRect = ballPrefab != null ? ballPrefab.transform as RectTransform : null;
         if (ballRect != null) halfBall = ballRect.rect.height * 0.5f;
@@ -228,7 +241,6 @@ public class BallJuggle : MicrogameBase
         float topY = playArea.rect.yMax - spawnTopMargin - halfBall;
         float minY = topY - ballSpawnHeight;
 
-        // Never let the strip reach down toward the paddle.
         float paddleTop = playerShip != null ? LocalRect(playerShip).yMax : playArea.rect.yMin;
         minY = Mathf.Max(minY, paddleTop + halfBall * 2f);
         if (minY > topY) minY = topY;
@@ -285,6 +297,7 @@ public class BallJuggle : MicrogameBase
     {
         if (playArea == null) return;
 
+        float m = SpeedMultiplier;
         float minX = playArea.rect.xMin;
         float maxX = playArea.rect.xMax;
         float maxY = playArea.rect.yMax;
@@ -306,7 +319,6 @@ public class BallJuggle : MicrogameBase
             RectTransform rt = ball.transform as RectTransform;
             if (rb == null || rt == null) continue;
 
-            // Ball position and size in the Play Area's own space.
             Vector3 local = playArea.InverseTransformPoint(rt.position);
             float scaleRatio = playArea.lossyScale.x != 0f ? rt.lossyScale.x / playArea.lossyScale.x : 1f;
             float halfW = rt.rect.width * 0.5f * scaleRatio;
@@ -317,7 +329,6 @@ public class BallJuggle : MicrogameBase
             bool wallBounced = false;
             bool paddleHit = false;
 
-            // Left and right walls.
             if (bounceOffSides)
             {
                 if (local.x - halfW < minX && velocity.x < 0f)
@@ -334,7 +345,6 @@ public class BallJuggle : MicrogameBase
                 }
             }
 
-            // Top wall: a ball moving up that reaches the top edge is sent back down.
             if (bounceOffTop && local.y + halfH > maxY && velocity.y > 0f)
             {
                 local.y = maxY - halfH;
@@ -342,7 +352,6 @@ public class BallJuggle : MicrogameBase
                 changed = wallBounced = true;
             }
 
-            // Paddle: only bounce a ball that is falling and is above the paddle's middle.
             if (hasPaddle && velocity.y < 0f && local.y > paddleRect.center.y)
             {
                 bool overlapX = local.x + halfW > paddleRect.xMin && local.x - halfW < paddleRect.xMax;
@@ -350,17 +359,23 @@ public class BallJuggle : MicrogameBase
 
                 if (overlapX && overlapY)
                 {
-                    local.y = paddleRect.yMax + halfH; // sit on top of the paddle
+                    local.y = paddleRect.yMax + halfH;
 
-                    velocity.y = Mathf.Max(-velocity.y * paddleBounciness, minPaddleBounceSpeed);
+                    velocity.y = Mathf.Max(-velocity.y * paddleBounciness, minPaddleBounceSpeed * m);
 
-                    // Hitting off-center steers the ball that way.
                     float halfPaddle = Mathf.Max(1f, paddleRect.width * 0.5f);
                     float offset = Mathf.Clamp((local.x - paddleRect.center.x) / halfPaddle, -1f, 1f);
-                    velocity.x += offset * paddleSteer;
+                    velocity.x += offset * paddleSteer * m;
 
                     changed = paddleHit = true;
                 }
+            }
+
+            // Speed limit: no ball ever goes faster than this, however high the difficulty.
+            if (velocity.magnitude > maxBallSpeed)
+            {
+                velocity = velocity.normalized * maxBallSpeed;
+                changed = true;
             }
 
             if (changed)
@@ -369,11 +384,9 @@ public class BallJuggle : MicrogameBase
                 SetVelocity(rb, velocity);
             }
 
-            // One sound per ball per frame. The paddle sound wins if both happened.
             if (paddleHit) PlayPaddleHitSound();
             else if (wallBounced) PlayBounceSound();
 
-            // Floor: the ball has fallen completely out of the bottom.
             if (local.y + halfH < floorY)
             {
                 FailState();
@@ -382,7 +395,6 @@ public class BallJuggle : MicrogameBase
         }
     }
 
-    // A RectTransform's bounds, measured in the Play Area's own space.
     private Rect LocalRect(RectTransform rt)
     {
         rt.GetWorldCorners(corners);
@@ -391,7 +403,6 @@ public class BallJuggle : MicrogameBase
         return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
     }
 
-    // Works on both older Unity versions and Unity 6.
     private static Vector2 GetVelocity(Rigidbody2D rb)
     {
 #if UNITY_6000_0_OR_NEWER
@@ -410,7 +421,7 @@ public class BallJuggle : MicrogameBase
 #endif
     }
 
-    // ---------- Player (touch/mouse drag-to-move matching GalagaBlast) ----------
+    // ---------- Player ----------
 
     private bool IsPointerDown(out Vector2 screenPosition)
     {

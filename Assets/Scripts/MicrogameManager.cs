@@ -22,6 +22,7 @@ using TMPro;
 ///   4. Put this script on an empty "MicrogameManager" GameObject in your
 ///      gameplay scene (the one FourMainMenu's Start button loads).
 /// </summary>
+/// 
 public class MicrogameManager : MonoBehaviour
 {
     [Header("Available Microgames (each a disabled child GameObject)")]
@@ -269,6 +270,9 @@ public class MicrogameManager : MonoBehaviour
 
         // Reset the bar to full at the start of each round
         if (timerSlider != null) timerSlider.value = 1f;
+
+        if (activeMicrogame is IDifficultyAware aware)
+            aware.SetDifficulty(1f / currentTimeLimitMultiplier);
 
         // Run the actual microgame with a shrinking timer.
         chosenObject.SetActive(true);
