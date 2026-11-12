@@ -64,6 +64,8 @@ public class MicrogameManager : MonoBehaviour
     private MicrogameBase activeMicrogame;
     private Coroutine roundRoutine;
 
+    public bool gamePaused;
+
     private void Start()
     {
         totalGamesThisSession = PlayerPrefs.GetInt("SelectedMicrogameCount", 4);
@@ -135,6 +137,7 @@ public class MicrogameManager : MonoBehaviour
 
     private IEnumerator PlayOneRound()
     {
+        gamePaused = false;
         // Ramp difficulty every N clears.
         if (gamesClearedCount > 0 && gamesClearedCount % speedRampEveryNGames == 0)
         {
