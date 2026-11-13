@@ -21859,7 +21859,7 @@ MonoBehaviour:
   - {r: 1, g: 0.88772, b: 0, a: 0.29803923}
   - {r: 1, g: 0.4764151, b: 0.95005995, a: 0.29803923}
   lightsChain: 4
-  flashTime: 0.15
+  flashTime: 0.13
   audioSource: {fileID: 1825379207}
   lightSounds:
   - {fileID: 8300000, guid: dcaa2dfb123702d4dafa13fbf80ef05c, type: 3}
