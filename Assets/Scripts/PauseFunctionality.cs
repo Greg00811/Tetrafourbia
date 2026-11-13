@@ -6,6 +6,7 @@ public class PauseFunctionality : MonoBehaviour
 {
 
     private MicrogameManager microgameManager;
+    [SerializeField] private GameObject pauseMenu;
 
     private void Start()
     {
@@ -21,11 +22,19 @@ public class PauseFunctionality : MonoBehaviour
         {
             Time.timeScale = 0f;
             microgameManager.gamePaused = true;
+            if (pauseMenu != null && pauseMenu.activeSelf == false)
+            {
+                pauseMenu.SetActive(true);
+            }
         }
         else if(microgameManager.gamePaused == true)
         {
             Time.timeScale = 1f;
             microgameManager.gamePaused = false;
+            if (pauseMenu != null && pauseMenu.activeSelf == true)
+            {
+                pauseMenu.SetActive(false);
+            }
         }
     }
     
