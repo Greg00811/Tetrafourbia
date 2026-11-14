@@ -9,7 +9,9 @@ using UnityEngine.UI;
 /// 1 square uses the Target Sprite.
 ///
 /// Clicking the Target Square = WIN.
-/// Clicking any Normal Square = LOSE.
+/// Clicking any Normal Square = LOSE, unless the click also landed
+/// inside the Target Square's area (the target is drawn behind the others,
+/// so this lets you click it even when it is covered).
 /// </summary>
 public class BouncingSquares : MicrogameBase
 {
@@ -249,8 +251,10 @@ public class BouncingSquares : MicrogameBase
 
         DisableAllSquares();
 
-        // ONLY the target square wins.
-        if (clickedButton == correctSquare)
+        // Win if the click landed on the target, even if another square is drawn on top of it.
+        bool clickedTarget = clickedButton == correctSquare || PointerIsOverTarget();
+
+        if (clickedTarget)
         {
             PlaySound(correctSFX);                             // SOUND
             ReportResult(true);
@@ -260,6 +264,26 @@ public class BouncingSquares : MicrogameBase
             PlaySound(wrongSFX);                               // SOUND
             ReportResult(false);
         }
+    }
+
+    // True if the mouse/touch position is inside the target square's rectangle.
+    private bool PointerIsOverTarget()
+    {
+        if (correctSquare == null)
+            return false;
+
+        RectTransform targetRect = correctSquare.GetComponent<RectTransform>();
+        if (targetRect == null)
+            return false;
+
+        // Overlay canvases need a null camera; other canvas modes use the canvas camera.
+        Canvas canvas = correctSquare.GetComponentInParent<Canvas>();
+        Camera cam = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            ? canvas.worldCamera
+            : null;
+
+        return RectTransformUtility.RectangleContainsScreenPoint(
+            targetRect, Input.mousePosition, cam);
     }
 
     // SOUND

@@ -239,30 +239,44 @@ public class GalagaBlast : MicrogameBase
     {
         if (activeEnemies.Count == 0 || playArea == null) return;
 
+        // A lag spike shouldn't make the formation jump a huge distance in one frame.
+        deltaTime = Mathf.Min(deltaTime, 0.05f);
+
         float halfWidth = playArea.rect.width / 2f - enemyHalfSize;
-        bool hitEdge = false;
+        float move = enemyDirection * enemySidewaysSpeed * deltaTime;
+
+        float minX = float.MaxValue;
+        float maxX = float.MinValue;
 
         foreach (var enemy in activeEnemies)
         {
             if (enemy == null) continue;
             Vector2 pos = enemy.anchoredPosition;
-            pos.x += enemyDirection * enemySidewaysSpeed * deltaTime;
+            pos.x += move;
             enemy.anchoredPosition = pos;
 
-            if (pos.x >= halfWidth || pos.x <= -halfWidth)
-                hitEdge = true;
+            minX = Mathf.Min(minX, pos.x);
+            maxX = Mathf.Max(maxX, pos.x);
         }
 
-        if (hitEdge)
+        // Only count an edge hit if the formation is moving TOWARD that edge.
+        bool hitEdge = (enemyDirection > 0f && maxX >= halfWidth)
+                    || (enemyDirection < 0f && minX <= -halfWidth);
+
+        if (!hitEdge) return;
+
+        // Push the formation back inside the edge so it can't re-trigger next frame.
+        float correction = enemyDirection > 0f ? halfWidth - maxX : -halfWidth - minX;
+
+        enemyDirection *= -1f;
+
+        foreach (var enemy in activeEnemies)
         {
-            enemyDirection *= -1f;
-            foreach (var enemy in activeEnemies)
-            {
-                if (enemy == null) continue;
-                Vector2 pos = enemy.anchoredPosition;
-                pos.y -= enemyDropAmount;
-                enemy.anchoredPosition = pos;
-            }
+            if (enemy == null) continue;
+            Vector2 pos = enemy.anchoredPosition;
+            pos.x += correction;
+            pos.y -= enemyDropAmount;
+            enemy.anchoredPosition = pos;
         }
     }
 

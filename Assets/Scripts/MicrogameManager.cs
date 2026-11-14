@@ -22,6 +22,7 @@ using TMPro;
 ///   4. Put this script on an empty "MicrogameManager" GameObject in your
 ///      gameplay scene (the one FourMainMenu's Start button loads).
 /// </summary>
+/// 
 public class MicrogameManager : MonoBehaviour
 {
     [Header("Available Microgames (each a disabled child GameObject)")]
@@ -46,6 +47,16 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private GameObject goBanner;      // shows "GO!" when round starts
     [SerializeField] private CanvasGroup resultsPanel; // shown at end of session
     [SerializeField] private TMP_Text resultsSummaryText;
+    [SerializeField] private GameObject[] winObjects;   // shown only when the player wins
+    [SerializeField] private GameObject[] loseObjects;  // shown only when the player loses
+
+    [Header("End Screen")]
+    [Tooltip("Canvases or objects to switch off when the session ends (their children go with them). " +
+             "Do NOT put the results panel, win/lose objects, or anything that contains them here.")]
+    [SerializeField] private GameObject[] removeOnEnd;
+    [Tooltip("Gives the results panel its own sorting layer above everything else, so no other canvas covers or blocks it.")]
+    [SerializeField] private bool bringResultsToFront = true;
+    [SerializeField] private int resultsSortingOrder = 1000;
 
     [Header("Narrative (tap-to-advance dialogue)")]
     [SerializeField] private DialoguePlayer dialoguePlayer;
@@ -57,6 +68,8 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private LivesBreakScreen livesBreakScreen;
 
     [Header("Finale (played once after every other game is cleared)")]
+    [Tooltip("Untick to skip the final boss minigame completely.")]
+    [SerializeField] private bool finaleEnabled = true;
     [SerializeField] private GameObject finaleMicrogame;
     [SerializeField] private NarrativeSequence finaleIntroSequence;
 
@@ -76,6 +89,9 @@ public class MicrogameManager : MonoBehaviour
     private List<GameObject> shuffledBag = new List<GameObject>();
     private MicrogameBase activeMicrogame;
     private Coroutine roundRoutine;
+
+    /// <summary>True only if the finale checkbox is ticked AND a finale object is assigned.</summary>
+    private bool FinaleActive => finaleEnabled && finaleMicrogame != null;
 
     /// <summary>Your custom font has no zero, so every 0 is shown as a capital O.</summary>
     private static string NoZeros(string s) => s.Replace('0', 'O');
@@ -100,7 +116,7 @@ public class MicrogameManager : MonoBehaviour
         {
             if (level < microgamePrefabsOrObjects.Length)
                 practiceMicrogame = microgamePrefabsOrObjects[level];
-            else if (level == microgamePrefabsOrObjects.Length && finaleMicrogame != null)
+            else if (level == microgamePrefabsOrObjects.Length && FinaleActive)
                 practiceMicrogame = finaleMicrogame;
         }
 
@@ -122,6 +138,10 @@ public class MicrogameManager : MonoBehaviour
             resultsPanel.alpha = 0f;
             resultsPanel.gameObject.SetActive(false);
         }
+
+        // Hide the win/lose visuals until the session ends
+        SetObjectsActive(winObjects, false);
+        SetObjectsActive(loseObjects, false);
 
         UpdateLivesUI();
         UpdateGameCountUI();
@@ -166,9 +186,9 @@ public class MicrogameManager : MonoBehaviour
             }
         }
 
-        // Finale: only if every normal game was cleared with lives to spare.
+        // Finale: only if it is enabled and every normal game was cleared with lives to spare.
         // Losing it costs a life and replays it until you win or run out of lives.
-        if (practiceMicrogame == null && finaleMicrogame != null && gamesClearedCount >= totalGamesThisSession && currentLives > 0)
+        if (practiceMicrogame == null && FinaleActive && gamesClearedCount >= totalGamesThisSession && currentLives > 0)
         {
             yield return StartCoroutine(PlayNarrative(finaleIntroSequence));
 
@@ -250,6 +270,9 @@ public class MicrogameManager : MonoBehaviour
 
         // Reset the bar to full at the start of each round
         if (timerSlider != null) timerSlider.value = 1f;
+
+        if (activeMicrogame is IDifficultyAware aware)
+            aware.SetDifficulty(1f / currentTimeLimitMultiplier);
 
         // Run the actual microgame with a shrinking timer.
         chosenObject.SetActive(true);
@@ -333,20 +356,116 @@ public class MicrogameManager : MonoBehaviour
 
     private void EndSession()
     {
+        // The finale only has to be beaten if it is enabled.
         bool clearedAll = gamesClearedCount >= totalGamesThisSession
-            && (practiceMicrogame != null || finaleMicrogame == null || finaleWon);
+            && (practiceMicrogame != null || !FinaleActive || finaleWon);
+
+        // Win = cleared everything with lives left
+        bool playerWon = clearedAll && currentLives > 0;
+
+        // Clear away any UI that could be covering the results screen.
+        RemoveObjects(removeOnEnd);
 
         if (resultsPanel != null)
         {
             resultsPanel.gameObject.SetActive(true);
             resultsPanel.alpha = 1f;
+            resultsPanel.blocksRaycasts = true;
+            resultsPanel.interactable = true;
+
+            if (bringResultsToFront) BringToFront(resultsPanel.gameObject);
         }
+
+        Debug.Log($"EndSession: playerWon={playerWon}, clearedAll={clearedAll}, lives={currentLives}, cleared={gamesClearedCount}/{totalGamesThisSession}");
+
+        // Hide the unused set first, then show the chosen set last.
+        SetObjectsActive(playerWon ? loseObjects : winObjects, false);
+        SetObjectsActive(playerWon ? winObjects : loseObjects, true);
 
         if (resultsSummaryText != null)
         {
             resultsSummaryText.text = NoZeros(clearedAll
                 ? $"CLEARED ALL {totalGamesThisSession}!"
                 : $"GAME OVER\n{gamesClearedCount} / {totalGamesThisSession} cleared");
+        }
+    }
+
+    /// <summary>Switches off each object (and so all of its children), skipping anything that holds the results screen.</summary>
+    private void RemoveObjects(GameObject[] objects)
+    {
+        if (objects == null) return;
+
+        foreach (var obj in objects)
+        {
+            if (obj == null) continue;
+
+            // Safety: never remove something that contains the results panel or win/lose visuals.
+            if (ContainsResults(obj))
+            {
+                Debug.LogWarning($"MicrogameManager: '{obj.name}' in Remove On End contains the results screen, so it was skipped. " +
+                                 "Remove the specific objects inside it instead.", this);
+                continue;
+            }
+
+            obj.SetActive(false);
+        }
+    }
+
+    private bool ContainsResults(GameObject obj)
+    {
+        if (resultsPanel != null && resultsPanel.transform.IsChildOf(obj.transform)) return true;
+        if (IsAnyChildOf(winObjects, obj)) return true;
+        if (IsAnyChildOf(loseObjects, obj)) return true;
+        return false;
+    }
+
+    private static bool IsAnyChildOf(GameObject[] list, GameObject parent)
+    {
+        if (list == null) return false;
+        foreach (var item in list)
+            if (item != null && item.transform.IsChildOf(parent.transform)) return true;
+        return false;
+    }
+
+    /// <summary>Puts an object on its own canvas layer above everything else.</summary>
+    private void BringToFront(GameObject target)
+    {
+        Canvas canvas = target.GetComponent<Canvas>();
+        if (canvas == null) canvas = target.AddComponent<Canvas>();
+
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = resultsSortingOrder;
+
+        // A canvas needs its own raycaster for buttons on it to be clickable.
+        if (target.GetComponent<GraphicRaycaster>() == null)
+            target.AddComponent<GraphicRaycaster>();
+    }
+
+    private void SetObjectsActive(GameObject[] objects, bool active)
+    {
+        if (objects == null) return;
+
+        foreach (var obj in objects)
+        {
+            if (obj == null) continue;
+
+            if (!active)
+            {
+                obj.SetActive(false);
+                continue;
+            }
+
+            // Turn on every parent, so a hidden canvas or container can't hide it.
+            Transform parent = obj.transform.parent;
+            while (parent != null)
+            {
+                parent.gameObject.SetActive(true);
+                parent = parent.parent;
+            }
+
+            // Then the object itself and all of its children.
+            foreach (Transform child in obj.GetComponentsInChildren<Transform>(true))
+                child.gameObject.SetActive(true);
         }
     }
 

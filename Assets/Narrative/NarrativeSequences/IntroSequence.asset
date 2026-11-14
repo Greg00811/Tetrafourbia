@@ -18,13 +18,13 @@ MonoBehaviour:
   - speakerName: Quade (Therapy AI Assistant)
     text: Hello! I'm Quade, your science-backed, trustworthy Therapy AI. Doctor Greg,
       your therapist, has already sent me your file for analysis.
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: f8105097818046345aa5a38f9263747e, type: 3}
   - speakerName: Quade (Therapy AI Assistant)
     text: What you appear to be suffering from is a severe case of Tetraphobia, the
       fear of the number... well, it's the one after three. We haven't begun trials
       yet, so I will refrain from naming that number just yet.
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: b33532affe6bf4f40a146429efb83b31, type: 3}
   - speakerName: Quade (Therapy AI Assistant)
     text: I have prepared a sequence of brief tests to assist you while you overcome
       your fear. I bet you can guess how many there are!
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: ad6fb7622aa6b0c409c09eee9d2307cd, type: 3}
