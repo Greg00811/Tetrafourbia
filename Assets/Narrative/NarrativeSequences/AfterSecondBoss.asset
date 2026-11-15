@@ -17,20 +17,20 @@ MonoBehaviour:
   lines:
   - speakerName: Quade v4.4 (Therapy AI Antagonist)
     text: This.... can't be.... You defeated me, Quade.
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: 57b3cf86fe395de4c8c6dcf93dbea392, type: 3}
   - speakerName: Quade v4.4 (Therapy AI Antagonist)
     text: The "e" was silent, in case you were wondering.
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: 47d320a811f0dfb48b4481314b533667, type: 3}
   - speakerName: Quade (Therapy AI Assistant)
     text: Well, glad we could work out a solution to your little problem!
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: d6e84005d39652948aa48fdd18318e0b, type: 3}
   - speakerName: Quade (Therapy AI Assistant)
     text: I'll send Doctor Greg a notice -- you passed your evaluation!
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: ad6fb7622aa6b0c409c09eee9d2307cd, type: 3}
   - speakerName: Quade (Therapy AI Assistant)
     text: Those minigames I generated for you before are still here, should you ever
       need to face them again. Don't worry, I believe you're cured.
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: f8105097818046345aa5a38f9263747e, type: 3}
   - speakerName: Quade (Therapy AI Assistant)
     text: Goodbye, friend!
-    npcSprite: {fileID: 0}
+    npcSprite: {fileID: 21300000, guid: f8105097818046345aa5a38f9263747e, type: 3}
