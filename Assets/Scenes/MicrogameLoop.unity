@@ -17881,8 +17881,26 @@ MonoBehaviour:
   resultsSortingOrder: 1000
   dialoguePlayer: {fileID: 389149043}
   introSequence: {fileID: 11400000, guid: 9215830a6bb27a64ba844d4be6dd244c, type: 2}
-  interludeSequences: []
-  gamesPerInterlude: 4
+  interludeSequences:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: 7d36d59a176f3584d855f507f810f2f1, type: 2}
+  - {fileID: 11400000, guid: ad39d64c4c9581d4c9baa1dc691f1384, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: 7d227a358bf3afd46ab41f4373718e17, type: 2}
+  gamesPerInterlude: 1
   livesBreakScreen: {fileID: 1827713189}
   finaleEnabled: 1
   finaleMicrogame: {fileID: 984548280}
