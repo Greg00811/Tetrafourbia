@@ -24,6 +24,12 @@ using TMPro;
 /// RenderTexture, displayed on a RawImage inside your UI. The creatures are 2D
 /// sprites standing in the 3D hallways, always turned to face the camera.
 ///
+/// Orientation: the rest of the game is portrait, but this one plays in LANDSCAPE
+/// (the player turns their phone). The screen is switched to landscape when the
+/// finale starts and back to portrait when it ends. This only happens on a real
+/// device; in the Editor, test by changing the Game view's resolution to a
+/// landscape one such as 1920x1080.
+///
 /// Your office needs an OfficeRig component on its root (see OfficeRig.cs) that
 /// points at its doors, lights, creature spots and eye position.
 ///
@@ -68,11 +74,20 @@ public class LightsAndDoorsFinale : MicrogameBase
     [Header("Camera")]
     [SerializeField] private Vector2Int viewResolution = new Vector2Int(720, 1280);
     [SerializeField] private float cameraFieldOfView = 70f;
+    [Tooltip("Closest and farthest distance the camera draws, in your office's units. If parts of the office vanish, raise Far Clip.")]
+    [SerializeField] private float nearClip = 0.05f;
+    [SerializeField] private float farClip = 1000f;
     [SerializeField] private float lookSensitivity = 0.15f;   // degrees turned per pixel dragged
     [SerializeField] private float maxLookAngle = 40f;        // how far left/right you can look
     [SerializeField] private float swayAngle = 1.5f;
     [SerializeField] private float swayDistance = 0.04f;
     [SerializeField] private float swaySpeed = 0.6f;
+
+    [Header("Orientation")]
+    [Tooltip("Turns the screen to landscape while the finale plays (the player turns their phone), then switches back.")]
+    [SerializeField] private bool forceLandscape = true;
+    [SerializeField] private ScreenOrientation landscapeOrientation = ScreenOrientation.LandscapeLeft; // use LandscapeRight to flip it
+    [SerializeField] private ScreenOrientation orientationAfterFinale = ScreenOrientation.Portrait;
 
     [Header("Lighting")]
     [Tooltip("Switches off the scene's directional light and dims ambient light while this plays, so only the office's own lights show. Everything is restored afterwards.")]
@@ -91,6 +106,14 @@ public class LightsAndDoorsFinale : MicrogameBase
     [SerializeField] private float doorDrainPerSecond = 0.9f;   // per closed door
     [SerializeField] private float lightDrainPerSecond = 0.6f;  // per light that is on
 
+    [Header("Debug (for testing only)")]
+    [Tooltip("Shows creatures even when no light is held, so you can check where they stand and how big they are.")]
+    [SerializeField] private bool debugShowCreaturesWithoutLight = false;
+    [Tooltip("Puts each creature at this spot when the round starts: 0 = gone, 1 = far, 2 = near, 3 = at the door.")]
+    [SerializeField, Range(0, 3)] private int debugCreatureStartStage = 0;
+    [Tooltip("Stops the creatures from moving or attacking, so you can look at them in peace.")]
+    [SerializeField] private bool debugFreezeCreatures = false;
+
     /// <summary>Everything that belongs to one side (left or right) of the office.</summary>
     private class Side
     {
@@ -101,6 +124,7 @@ public class LightsAndDoorsFinale : MicrogameBase
         public float moveTimer;
         public float doorAmount;     // 0 = open, 1 = closed (animated)
         public SpriteRenderer enemy;
+        public bool usingArt;
     }
 
     private Side left;
@@ -109,6 +133,7 @@ public class LightsAndDoorsFinale : MicrogameBase
     private GameObject officeInstance;
     private bool officeIsCopy;
     private Transform lookPivot;
+    private Transform eyeTransform;
     private Camera officeCamera;
     private RenderTexture officeTexture;
     private Sprite whiteSprite;
@@ -127,6 +152,7 @@ public class LightsAndDoorsFinale : MicrogameBase
     private bool sceneDimmed;
     private UnityEngine.Rendering.AmbientMode savedAmbientMode;
     private Color savedAmbientColor;
+    private bool orientationChanged;
 
     // Longer than a normal microgame, and surviving to the end of the timer is the win.
     public override bool IgnoreDifficultyRamp => true;
@@ -156,6 +182,7 @@ public class LightsAndDoorsFinale : MicrogameBase
         roundOver = false;
         setupFailed = false;
 
+        ApplyLandscape();
         BuildWorld();
         if (!setupFailed) WireButtons();
 
@@ -279,6 +306,8 @@ public class LightsAndDoorsFinale : MicrogameBase
 
     private void UpdateEnemy(Side side, float deltaTime, float aggression)
     {
+        if (debugFreezeCreatures) return;
+
         side.moveTimer -= deltaTime;
         if (side.moveTimer > 0f) return;
         side.moveTimer = Random.Range(moveIntervalMin, moveIntervalMax) * aggression;
@@ -339,7 +368,11 @@ public class LightsAndDoorsFinale : MicrogameBase
         }
 
         float t = Time.time * swaySpeed;
-        lookPivot.localRotation = Quaternion.Euler(0f, lookYaw + Mathf.Sin(t) * swayAngle, 0f);
+        if (eyeTransform != null)
+        {
+            lookPivot.position = eyeTransform.position;
+            lookPivot.rotation = eyeTransform.rotation * Quaternion.Euler(0f, lookYaw + Mathf.Sin(t) * swayAngle, 0f);
+        }
         officeCamera.transform.localPosition = new Vector3(
             Mathf.Sin(t) * swayDistance,
             Mathf.Sin(t * 0.7f + 1f) * swayDistance * 0.3f,
@@ -358,13 +391,19 @@ public class LightsAndDoorsFinale : MicrogameBase
 
         // The creature is only visible while the light is on, standing at its current spot.
         Transform spot = StagePoint(side);
-        bool visible = side.lightOn && side.stage > 0 && spot != null;
+        bool visible = (side.lightOn || debugShowCreaturesWithoutLight) && side.stage > 0 && spot != null;
         side.enemy.enabled = visible;
 
         if (spot != null)
         {
             side.enemy.transform.position = spot.position;
         }
+
+        // Size is applied every frame, so you can change 'Enemy Height' in Play mode and see it right away.
+        Vector2 native = side.enemy.sprite.bounds.size;
+        float scaleY = enemyHeight / native.y;
+        float scaleX = side.usingArt ? scaleY : enemyWidth / native.x;
+        side.enemy.transform.localScale = new Vector3(scaleX, scaleY, 1f);
         // Turn it to face the camera so the flat sprite always reads clearly.
         side.enemy.transform.rotation = officeCamera.transform.rotation;
     }
@@ -437,36 +476,57 @@ public class LightsAndDoorsFinale : MicrogameBase
             return;
         }
 
+        // Some models come with their own camera or audio listener. A second audio
+        // listener floods the Console with warnings, and a second camera draws over the
+        // screen, so switch both off. (This runs before our own camera is made.)
+        foreach (AudioListener strayListener in officeInstance.GetComponentsInChildren<AudioListener>(true))
+            strayListener.enabled = false;
+        foreach (Camera strayCamera in officeInstance.GetComponentsInChildren<Camera>(true))
+            strayCamera.enabled = false;
+
         // Start from a clean state: doors open, lights off.
         rig.SetDoor(rig.left, 0f);
         rig.SetDoor(rig.right, 0f);
         rig.SetLight(rig.left, false);
         rig.SetLight(rig.right, false);
 
-        // The camera sits on a pivot at the player's eyes, so the pivot can turn to look around.
+        // The camera sits on a pivot that follows the player's eyes. The pivot is NOT
+        // parented to the office, so the office's scale can never squash the camera's view.
+        eyeTransform = rig.cameraPoint;
         GameObject pivotObject = new GameObject("LookPivot");
         lookPivot = pivotObject.transform;
-        lookPivot.SetParent(rig.cameraPoint, false);
+        lookPivot.SetPositionAndRotation(eyeTransform.position, eyeTransform.rotation);
 
         GameObject cameraObject = new GameObject("OfficeCamera");
         cameraObject.transform.SetParent(lookPivot, false);
         officeCamera = cameraObject.AddComponent<Camera>();
         officeCamera.orthographic = false;
         officeCamera.fieldOfView = cameraFieldOfView;
-        officeCamera.nearClipPlane = 0.05f;
-        officeCamera.farClipPlane = 200f;
+        officeCamera.nearClipPlane = nearClip;
+        officeCamera.farClipPlane = farClip;
         officeCamera.clearFlags = CameraClearFlags.SolidColor;
         officeCamera.backgroundColor = Color.black;
         officeCamera.depth = -10f;
 
         // Film into a texture instead of the screen, and show that texture in the UI.
-        officeTexture = new RenderTexture(viewResolution.x, viewResolution.y, 24);
+        int textureWidth = viewResolution.x;
+        int textureHeight = viewResolution.y;
+        if (forceLandscape)
+        {
+            // A landscape screen needs a picture that is wider than it is tall.
+            textureWidth = Mathf.Max(viewResolution.x, viewResolution.y);
+            textureHeight = Mathf.Min(viewResolution.x, viewResolution.y);
+        }
+        officeTexture = new RenderTexture(textureWidth, textureHeight, 24);
         officeCamera.targetTexture = officeTexture;
         if (officeView != null) officeView.texture = officeTexture;
 
         if (whiteSprite == null) whiteSprite = CreateWhiteSprite();
         left = BuildSide(rig.left, "Left", leftEnemySprite, new Color(0.9f, 0.15f, 0.15f), 3f, 5f);
         right = BuildSide(rig.right, "Right", rightEnemySprite, new Color(0.95f, 0.55f, 0.10f), 5f, 8f);
+
+        CheckSide(rig.left, "Left");
+        CheckSide(rig.right, "Right");
 
         DarkenScene();
     }
@@ -488,6 +548,7 @@ public class LightsAndDoorsFinale : MicrogameBase
         side.enemy = enemyObject.AddComponent<SpriteRenderer>();
 
         bool usingArt = sprite != null;
+        side.usingArt = usingArt;
         side.enemy.sprite = usingArt ? sprite : whiteSprite;
         side.enemy.color = usingArt ? Color.white : placeholderColor;
 
@@ -499,7 +560,28 @@ public class LightsAndDoorsFinale : MicrogameBase
 
         // Stagger the two sides so they don't both arrive at once.
         side.moveTimer = Random.Range(minDelay, maxDelay);
+        side.stage = Mathf.Clamp(debugCreatureStartStage, 0, 3);
         return side;
+    }
+
+    // Tells you in the Console exactly which part of the OfficeRig is still empty.
+    private static void CheckSide(OfficeRig.SideParts parts, string label)
+    {
+        bool noStagePoints = parts.enemyStagePoints == null || parts.enemyStagePoints.Length == 0;
+        if (!noStagePoints)
+        {
+            foreach (Transform point in parts.enemyStagePoints)
+            {
+                if (point == null) { noStagePoints = true; break; }
+            }
+        }
+
+        if (noStagePoints)
+            Debug.LogWarning("LightsAndDoorsFinale: the " + label + " side has empty 'Enemy Stage Points' in the OfficeRig, so its creature has nowhere to stand and will never appear.");
+        if (parts.door == null)
+            Debug.LogWarning("LightsAndDoorsFinale: the " + label + " side has no 'Door' in the OfficeRig, so its door button won't move anything.");
+        if (parts.lightObject == null)
+            Debug.LogWarning("LightsAndDoorsFinale: the " + label + " side has no 'Light Object' in the OfficeRig, so holding its light button won't light anything.");
     }
 
     // A 1x1-unit white square, so placeholder creatures need no art assets at all.
@@ -552,6 +634,20 @@ public class LightsAndDoorsFinale : MicrogameBase
         sceneDimmed = false;
     }
 
+    private void ApplyLandscape()
+    {
+        if (!forceLandscape || orientationChanged) return;
+        Screen.orientation = landscapeOrientation;
+        orientationChanged = true;
+    }
+
+    private void RestoreOrientation()
+    {
+        if (!orientationChanged) return;
+        Screen.orientation = orientationAfterFinale;
+        orientationChanged = false;
+    }
+
     private void CleanupWorld()
     {
         if (officeCamera != null)
@@ -584,8 +680,10 @@ public class LightsAndDoorsFinale : MicrogameBase
         }
 
         RestoreScene();
+        RestoreOrientation();
 
         officeCamera = null;
+        eyeTransform = null;
         officeInstance = null;
         rig = null;
         left = null;
