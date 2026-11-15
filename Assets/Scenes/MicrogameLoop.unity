@@ -2809,7 +2809,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DinosaurGame
   instruction: JUMP!
   baseTimeLimit: 8
-  spawnTimerMin: 0.5
+  spawnTimerMin: 0.75
   spawnTimerMax: 0.75
   obstaclePrefab: {fileID: 6186170766936572173, guid: 47a05b4792126484f915507f3632b260, type: 3}
   obstacleParent: {fileID: 186332424}
