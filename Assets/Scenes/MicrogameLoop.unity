@@ -1681,7 +1681,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DinosaurGame
   instruction: Jump!
   baseTimeLimit: 4
-  spawnTimerMin: 0.5
+  spawnTimerMin: 0.75
   spawnTimerMax: 0.75
   obstaclePrefab: {fileID: 6186170766936572173, guid: 47a05b4792126484f915507f3632b260, type: 3}
   obstacleParent: {fileID: 186332424}
@@ -1689,7 +1689,7 @@ MonoBehaviour:
   playerDead: 0
   jumpButton: {fileID: 759594411}
   jumpTime: 0.3
-  jumpHeight: 200
+  jumpHeight: 180
   playerPrefab: {fileID: 7669357908645884518, guid: e32c0a357d15bd6478a3153517e79eaf, type: 3}
   playerParent: {fileID: 485707822}
 --- !u!1 &377355361
@@ -7758,7 +7758,6 @@ MonoBehaviour:
   - {fileID: 1983235220}
   - {fileID: 1825379204}
   - {fileID: 335797218}
-  - {fileID: 335797218}
   - {fileID: 1764177115}
   startingLives: 4
   speedRampEveryNGames: 4
@@ -7779,6 +7778,7 @@ MonoBehaviour:
   livesBreakScreen: {fileID: 1827713189}
   mainMenuSceneName: MainMenu
   currentTimeLimitMultiplier: 1
+  gamePaused: 0
 --- !u!1 &1519346370
 GameObject:
   m_ObjectHideFlags: 0
@@ -9886,7 +9886,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1895128390
 MonoBehaviour:
   m_ObjectHideFlags: 0
