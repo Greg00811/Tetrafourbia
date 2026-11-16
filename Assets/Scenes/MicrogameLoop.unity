@@ -11725,6 +11725,37 @@ Transform:
   - {fileID: 56794600}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &991847319
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 991847320}
+  m_Layer: 0
+  m_Name: HallwayDoor(Left)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &991847320
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 991847319}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.1457, y: -2.8736, z: 5.8766}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853879562}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1009980698
 GameObject:
   m_ObjectHideFlags: 0
@@ -12467,6 +12498,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1036617380}
   m_CullTransparentMesh: 1
+--- !u!1 &1037886086
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1037886087}
+  m_Layer: 0
+  m_Name: HallwayDoor(Right)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1037886087
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1037886086}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.1457, y: -2.8736, z: 4.508257}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853879562}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1063310366
 GameObject:
   m_ObjectHideFlags: 0
@@ -12796,6 +12858,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1114258788}
   m_CullTransparentMesh: 1
+--- !u!1 &1115141244
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1115141245}
+  m_Layer: 0
+  m_Name: HallwayFar(Right)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1115141245
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1115141244}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.1457, y: -3.1599, z: 4.508257}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853879562}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1132989592
 GameObject:
   m_ObjectHideFlags: 0
@@ -13145,6 +13238,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1147129326}
   m_CullTransparentMesh: 1
+--- !u!1 &1147992253
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1147992254}
+  m_Layer: 0
+  m_Name: HallwayFar(Left)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1147992254
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1147992253}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.1457, y: -3.1599, z: 6.037}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853879562}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1150218555
 GameObject:
   m_ObjectHideFlags: 0
@@ -16591,6 +16715,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1474040980}
   m_CullTransparentMesh: 1
+--- !u!1 &1476282211
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1476282212}
+  m_Layer: 0
+  m_Name: HallwayClose(Right)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1476282212
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1476282211}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.1457, y: -2.9987, z: 4.508257}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853879562}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1479925884
 GameObject:
   m_ObjectHideFlags: 0
@@ -19811,6 +19966,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1618222158}
   m_CullTransparentMesh: 1
+--- !u!1 &1628208800
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1628208801}
+  m_Layer: 0
+  m_Name: HallwayClose(Left)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1628208801
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628208800}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.1457, y: -2.9987, z: 6.037}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1853879562}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1631210511
 GameObject:
   m_ObjectHideFlags: 0
@@ -22957,6 +23143,24 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8402015444092406040, guid: 24370f584151df04590782459663f838, type: 3}
       insertIndex: -1
       addedObject: {fileID: 463496428}
+    - targetCorrespondingSourceObject: {fileID: 8402015444092406040, guid: 24370f584151df04590782459663f838, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1147992254}
+    - targetCorrespondingSourceObject: {fileID: 8402015444092406040, guid: 24370f584151df04590782459663f838, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1628208801}
+    - targetCorrespondingSourceObject: {fileID: 8402015444092406040, guid: 24370f584151df04590782459663f838, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 991847320}
+    - targetCorrespondingSourceObject: {fileID: 8402015444092406040, guid: 24370f584151df04590782459663f838, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1115141245}
+    - targetCorrespondingSourceObject: {fileID: 8402015444092406040, guid: 24370f584151df04590782459663f838, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1476282212}
+    - targetCorrespondingSourceObject: {fileID: 8402015444092406040, guid: 24370f584151df04590782459663f838, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1037886087}
     - targetCorrespondingSourceObject: {fileID: 1686355059567783319, guid: 24370f584151df04590782459663f838, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1070676759}
@@ -25292,17 +25496,17 @@ MonoBehaviour:
     closeOffset: {x: 0, y: -2.5, z: 0}
     lightObject: {fileID: 2070222434}
     enemyStagePoints:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 1147992254}
+    - {fileID: 1628208801}
+    - {fileID: 991847320}
   right:
     door: {fileID: 1939570981}
     closeOffset: {x: 0, y: -2.5, z: 0}
     lightObject: {fileID: 464933377}
     enemyStagePoints:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 1115141245}
+    - {fileID: 1476282212}
+    - {fileID: 1037886087}
 --- !u!1 &2057782837
 GameObject:
   m_ObjectHideFlags: 0
