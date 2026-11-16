@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEditor.UIElements;
 
 /// <summary>
 /// Runs the WarioWare-style microgame loop, themed around FOUR:
@@ -65,11 +66,20 @@ public class MicrogameManager : MonoBehaviour
     private Coroutine roundRoutine;
 
     public bool gamePaused;
+    [Header("Instructions Pop Up")]
+    [SerializeField] private bool showInstructions; //instructions pop up addition
+    [SerializeField] private GameObject instructionTextBox; //instructions pop up addition
+    private InstructionsMG instructionsMG; //instructions pop up addition
+    private List<string> seenMicrogames = new(); //instructions pop up addition
+    private Coroutine instructionTimeOutCoroutine; //instructions pop up addition
+    [SerializeField] private float instructionDisplayTime = 4f; //instructions pop up addition
 
     private void Start()
     {
         totalGamesThisSession = PlayerPrefs.GetInt("SelectedMicrogameCount", 4);
         currentLives = startingLives;
+
+        instructionsMG = instructionTextBox.GetComponent<InstructionsMG>(); //instructions pop up addition
 
         foreach (var obj in microgamePrefabsOrObjects)
         {
@@ -153,6 +163,7 @@ public class MicrogameManager : MonoBehaviour
             yield break;
         }
 
+        ShowMicrogameInstructions(); //instructions pop up addition
         // "READY?" beat
         if (readyBanner != null) readyBanner.SetActive(true);
         if (instructionText != null) instructionText.text = activeMicrogame.Instruction;
@@ -235,6 +246,40 @@ public class MicrogameManager : MonoBehaviour
         GameObject next = shuffledBag[0];
         shuffledBag.RemoveAt(0);
         return next;
+    }
+
+    private void ShowMicrogameInstructions() //instructions pop up addition
+    {
+        showInstructions = true;
+        if (instructionTextBox != null && activeMicrogame != null && instructionsMG != null && showInstructions)
+        {
+            Debug.Log($"Showing instructions for microgame: {activeMicrogame.MicrogameName}");
+            instructionTextBox.SetActive(true);
+            instructionsMG.DisplayInstructions(activeMicrogame.Instruction);
+            instructionsMG.DisplayName(activeMicrogame.MicrogameName);
+            instructionsMG.DisplayAdditionalText(activeMicrogame.AdditionalText);
+        }
+        instructionTimeOutCoroutine = StartCoroutine(InstructionTimeout()); // Start the timeout coroutine
+
+    }
+
+    public void HideMicrogameInstructions() //instructions pop up addition
+    {
+        StopCoroutine(instructionTimeOutCoroutine); // Stop the coroutine after it finishes
+        if (instructionsMG != null)
+        {
+            instructionTextBox.gameObject.SetActive(false);
+        }
+        showInstructions = true;
+        Time.timeScale = 1f; // Resume the game
+        Debug.Log("Hiding instructions and resuming game.");
+    }
+
+    private IEnumerator InstructionTimeout() //instructions pop up addition
+    {
+        yield return new WaitForSecondsRealtime(instructionDisplayTime);
+        HideMicrogameInstructions();
+        Debug.Log("Instructions timeout reached. Hiding instructions.");
     }
 
     private void UpdateLivesUI()

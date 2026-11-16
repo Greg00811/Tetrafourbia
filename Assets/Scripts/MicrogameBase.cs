@@ -16,9 +16,13 @@ public abstract class MicrogameBase : MonoBehaviour, IMicrogame
     [Header("Microgame Info")]
     [SerializeField] private string instruction = "DO IT!";
     [SerializeField] private float baseTimeLimit = 4f; // 4 seconds - on theme!
+    [SerializeField] private string microgameName = "Microgame";
+    [SerializeField] private string additionalText = " ";
 
     public string Instruction => instruction;
     public float BaseTimeLimit => baseTimeLimit;
+    public string MicrogameName => microgameName;
+    public string AdditionalText => additionalText;
 
     public event Action<bool> OnMicrogameResult;
 
