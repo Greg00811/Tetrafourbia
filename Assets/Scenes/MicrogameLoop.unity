@@ -20747,7 +20747,7 @@ MonoBehaviour:
   cameraPoint: {fileID: 463496428}
   left:
     door: {fileID: 1473676321}
-    closeOffset: {x: 0, y: 0.25, z: 0}
+    closeOffset: {x: 0, y: -2.5, z: 0}
     lightObject: {fileID: 2070222434}
     enemyStagePoints:
     - {fileID: 1147992254}
@@ -20755,7 +20755,7 @@ MonoBehaviour:
     - {fileID: 991847320}
   right:
     door: {fileID: 1075851867}
-    closeOffset: {x: 0, y: 0.25, z: 0}
+    closeOffset: {x: 0, y: -2.5, z: 0}
     lightObject: {fileID: 464933377}
     enemyStagePoints:
     - {fileID: 1115141245}
@@ -21986,7 +21986,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 844313549400739333, guid: be0b6b79eefa5f941a891243b17b9181, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
