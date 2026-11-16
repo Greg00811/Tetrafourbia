@@ -6244,7 +6244,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &558659281
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11676,7 +11676,7 @@ MonoBehaviour:
   officeObject: {fileID: 1734788520}
   worldOrigin: {x: 5000, y: 0, z: 0}
   leftEnemySprite: {fileID: 21300000, guid: 1004ec48366881447995fd39fdbf87f0, type: 3}
-  rightEnemySprite: {fileID: 21300000, guid: 1004ec48366881447995fd39fdbf87f0, type: 3}
+  rightEnemySprite: {fileID: 21300000, guid: cc9973ac1f02cff4f92a54ccdebdc233, type: 3}
   enemyHeight: 2
   enemyWidth: 1
   viewResolution: {x: 720, y: 1280}
