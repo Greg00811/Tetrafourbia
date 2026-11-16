@@ -58,6 +58,9 @@ public class MicrogameManager : MonoBehaviour
     [SerializeField] private bool bringResultsToFront = true;
     [SerializeField] private int resultsSortingOrder = 1000;
 
+    [Header("Pause Screen")]
+    public bool gamePaused;
+
     [Header("Narrative (tap-to-advance dialogue)")]
     [SerializeField] private DialoguePlayer dialoguePlayer;
     [SerializeField] private NarrativeSequence introSequence;          // plays once, before the first microgame
@@ -216,6 +219,7 @@ public class MicrogameManager : MonoBehaviour
 
     private IEnumerator PlayOneRound(GameObject forcedMicrogame = null, bool countsTowardTotal = true)
     {
+        gamePaused = false;
         // Ramp difficulty every N clears (not for the finale, which is picked by hand).
         if (forcedMicrogame == null && gamesClearedCount > 0 && gamesClearedCount % speedRampEveryNGames == 0)
         {

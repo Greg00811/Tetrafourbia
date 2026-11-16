@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7552f8fac5c43e42abb0c8bae0a4ff5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleBehavior
-  moveSpeed: 1000
+  moveSpeed: 1200
   despawnLimit: -700
   dinosaurGame: {fileID: 0}
 --- !u!61 &-2193710858717852561
